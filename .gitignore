@@ -41,5 +41,7 @@ TODO.md
 *.*~
 *.*.swp
 
+coverage.lcov
+
 coverage/
 .nyc_output/

@@ -6,6 +6,6 @@ npm-shrinkwrap.json
 #visual studio code
 .vscode
 
-test
-devman.json
+coverage/
+.nyc_output/
 

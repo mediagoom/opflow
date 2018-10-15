@@ -4,7 +4,11 @@
   "description": "opflow is an operation flow bus. It allow to schedule and run in a reliable way Software operations.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --reporter spec ./test/**/*.js"
+      "test": "mocha --reporter spec ./test/**/*.js"
+    , "cov-test": "nyc npm test"
+    , "cov-html": "nyc report --reporter=html"
+    , "cov-lcov": "nyc report --reporter=text-lcov > coverage.lcov"
+    , "eslint": "eslint ./*//*.js"
   },
   "repository": {
     "type": "git",
@@ -15,6 +19,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "eslint": "^5.6.1",
+    "jsdoc": "^3.5.5",
     "mocha": "^5.2.0",
     "nyc": "^13.0.1"
   },
