@@ -1,0 +1,10 @@
+﻿install:
+  - npm install
+
+build: off
+
+test_script:
+  - ./node_modules/.bin/nyc npm test
+
+cache:
+- node_modules -> package.json
