@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const dbg    = require('debug')('opflow:basestorage');
+const storageError = require('../storage/storageError');
 
 const operation_default =  {
     'id': null
@@ -7,33 +8,40 @@ const operation_default =  {
     ,'config': null
     ,'type': 'NULL'
     ,'asof': null
-    ,'children': []
+    ,'leasetime': null
+    ,'children': null
     ,'result': null
     ,'completed': false
     ,'successed': false
-    ,'history': null
+    ,'executed': false
+    ,'history': null 
     ,'created': null
     ,'modified': null
     ,'propertybag': null
     ,'stoponerror' : true
 };
 
-class storageError extends Error
-{
-    constructor(msg)
-    {
-        super(msg);
+const type_def =  {
 
-    }
-}
+    retries: 3
+    , retries_interval: 300
+    , lease: 3600
+    , system: false
+    , process : async function() { throw new Error('operation processor not implemented'); }
+
+};
+
+
 
 class validationError extends storageError
 {
     constructor(msg, operation)
     {
-        super(msg);
+        super(msg + ' ' + JSON.stringify(Object.assign({}, operation, {children : null, history: null})));
         this.operation = operation;
     }
+
+    
 }
 
 const anchor = new Date(2100, 0, 0).getTime();
@@ -69,8 +77,16 @@ function opid(flowid)
 
 function op_default(op)
 {    
-    return Object.assign({}, operation_default, op);
-    
+    let oper = Object.assign({}, operation_default, op);
+    if(null == oper.children)
+        oper.children = new Array();
+
+    return oper;
+}
+
+function type_default(t)
+{    
+    return Object.assign({}, type_def, t);
 }
 
 function find_join(targetjoin, joins)
@@ -164,10 +180,50 @@ function flatten_tree(flowid, root, operations, joins)
 
 class basestorage extends EventEmitter{
 
-    constructor()
+    constructor(typemap)
     {
         super();
-        
+        this.typemap = typemap;
+        this.types = {};
+    }
+
+    get_type_path(name)
+    {
+        let system = true;
+        let p = this.typemap.system[name];
+
+        if(undefined === p)
+        {
+            p = this.typemap.user[name];
+            system = false;
+        }
+
+        return {path: p, system : system};
+    }
+
+    /** load a type given it name if it is register
+     * or using directly the name. In this case should be contained it the map.
+     */
+    async get_type(name)
+    {
+        if(undefined === this.types[name])
+        {
+            const p = this.get_type_path(name); 
+            if(undefined === p.path)
+            {
+                this.types[name] = type_default(require(name));
+                p.path = name;
+            }
+            else
+            {
+                this.types[name] = type_default(require(p.path));
+                this.types[name].system = p.system;
+            }
+
+            this.types[name].path = p.path;
+        }
+
+        return this.types[name];
     }
 
     static throw_storage_error(msg)
@@ -219,7 +275,7 @@ class basestorage extends EventEmitter{
 
         if(null == root || root.type != 'START')
         {
-            this.throw_storage_error('INVALID ROOT OPERATION');
+            basestorage.throw_storage_error('INVALID ROOT OPERATION');
         }
 
         if(null == jsonflow.id)

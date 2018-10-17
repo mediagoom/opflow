@@ -1,6 +1,6 @@
 
 const defaults = require('./default.js');
-let   _config   = require('./' + (process.env.NODE_ENV || 'development') + '.js');
+let   _config  = require('./' + (process.env.NODE_ENV || 'development') + '.js');
 
 _config = Object.assign({}, defaults, _config);
 
@@ -20,7 +20,8 @@ class Config
         if(!this._storage)
         {
             const storageclass = require(this.data.storage);
-            this._storage = new storageclass();        }
+            this._storage = new storageclass(require(this.data.typemap));        
+        }
              
 
         return this._storage;

@@ -20,14 +20,16 @@ function generateUUID() { // Public Domain/MIT
 }
 */
 
+
+
 module.exports = class memorystorage extends basestorage  {
     
-    constructor()
+    constructor(typemap)
     {
-        super();
+        super(typemap);
         this.flows = {};
     }
-
+    
     async save_flow(flow)
     {
         const storageflow = this.json_flow_to_storage_flow(flow);
@@ -38,6 +40,25 @@ module.exports = class memorystorage extends basestorage  {
     {
         this.flows = {};
     }
+
+    async lease_operations(operations)
+    {           
+
+        for(let idx = 0; idx < operations.length; idx++)
+        {
+            const element = operations[idx];
+            const type = await this.get_type(element.type);
+
+            let time =  new Date();
+            time.setSeconds(time.getSeconds() + type.lease);
+
+            element.leasetime = time;
+
+            dbg('leasing op:', element.name, element.id, element.leasetime, type.lease, element.type);
+        }
+        
+        return operations;
+    }
     
     async load_operations(nomore)
     {
@@ -46,12 +67,37 @@ module.exports = class memorystorage extends basestorage  {
         
         for(let k = 0; k < keys.length; k++)
         {
-            
             const flow = this.flows[keys[k]];
             
             //find first not compleated
             const op = flow.operations.find(element => {
-                return false === element.completed;
+                const time = new Date();
+
+                if(element.completed)
+                    return false;
+
+                if(null != element.asof)
+                {
+                    if(element.asof > time)
+                    {
+                        dbg('found future operation: ', element.name, element.id, element.asof);
+                        return false;
+                    }
+                }
+
+                if(null != element.leasetime)
+                {
+                    if(element.leasetime > time)
+                    {
+                        dbg('found working operation: ', element.name, element.id, element.leasetime);
+                        return false;
+                    }
+                }
+
+                //now we have a candidate
+
+                return true;
+
             });
 
             if(undefined === op)
@@ -61,11 +107,33 @@ module.exports = class memorystorage extends basestorage  {
 
             const join = flow.joinsparents[op.id];
 
-            if(undefined === join)
+            if(undefined === join) //we are not the son of a join
             {
-                operations.push(op);
-                if(operations.length >= nomore)
-                    return;
+                let processop = false;
+                const parentid = flow.parents[op.id];
+                
+                if(
+                    'START' == op.type
+                    && (undefined === parentid) 
+                )
+                    processop = true;
+                else
+                {
+                    //is our parent compleated
+                    const opdep = await this.get_operation(parentid);
+                    if(true === opdep.completed && true === opdep.successed)
+                    {
+                        processop = true;
+                    }
+                }
+
+                if(processop)
+                {
+                    dbg('found op to run: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+                    operations.push(op);
+                    if(operations.length >= nomore)
+                        return await this.lease_operations(operations);
+                }
             }
             else
             {
@@ -76,27 +144,27 @@ module.exports = class memorystorage extends basestorage  {
                     {
                         operations.push(opdep);
                         if(operations.length >= nomore)
-                            return;
+                            return await this.lease_operations(operations);
                     }
 
                 }
 
-                //we get here all dependency are completed
+                //we get here all join parents are completed
                 operations.push(op);
                 if(operations.length >= nomore)
-                    return;
+                    return await this.lease_operations(operations);
             }
 
         }
 
-        return operations;
+        return await this.lease_operations(operations);
     }
 
     async get_operation(operationid)
     {
         if(undefined === operationid)
         {
-            throw new basestorage.storageError('undefined operationid to get_operations');
+            basestorage.throw_storage_error('undefined operationid to get_operations');
         }
 
         const flowid = this.flow_id(operationid);
@@ -106,7 +174,7 @@ module.exports = class memorystorage extends basestorage  {
         return operations.find(element => {return element.id === operationid;});
     }
 
-    async complete_operation(operation)
+    async complete_operation(operation, success)
     {
         const op = await this.get_operation(operation.id);
         
@@ -114,7 +182,50 @@ module.exports = class memorystorage extends basestorage  {
             basestorage.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
 
         dbg('COMPLETED', op.name, op.type, op.id);
+        op.successed = success;
         op.completed = true;
+        op.modified = new Date();
+    }
+
+    async get_operation_history(operation)
+    {
+        return operation.history;
+    }
+
+    async get_operation_failures_count(operation)
+    {
+        const failure = operation.history.filter(element => {return !element.success;});
+        return failure.length;
+    }
+
+    async set_operation_asof(operation, asof)
+    {
+        operation.asof = asof;
+    }
+
+    async add_history(operation, message, success)
+    {
+        if(null === operation.history)
+            operation.history = new Array();
+
+        operation.history.push(
+            {
+                date : new Date()
+                , message : message
+                , success : success
+            }
+        );
+
+        operation.leasetime = null;
+    }
+
+    async reset_op(op)
+    {
+        op.successed = false;
+        op.completed = false;
+        op.executed  = false;
+        op.leasetime = undefined;
+        op.modified = new Date();
     }
 
     /*
