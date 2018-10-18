@@ -6,7 +6,7 @@ const operation_default =  {
     'id': null
     ,'name': null
     ,'config': null
-    ,'type': 'NULL'
+    ,'type': null
     ,'asof': null
     ,'leasetime': null
     ,'children': null
@@ -180,7 +180,96 @@ function flatten_tree(flowid, root, operations, joins)
     
 }
 
+function index_opsparent_and_joins(operations, joins)
+{
+    let parents = {};
+    let joins_parents = {};
 
+    joins.forEach( element => {
+            
+        if(undefined !== joins_parents[element.id])
+        {
+            throw new validationError('DUPLICATED JOIN ID', element);
+        }
+
+        joins_parents[element.id] = [];
+    });
+
+    operations.forEach(element => {
+        
+        delete element.children;
+
+        element.children_id.forEach(childid => {
+
+            //if child is a join
+            if(undefined !== joins_parents[childid])
+            {
+                joins_parents[childid].push(element.id);
+            }
+            else
+            {
+                if(undefined !== parents[childid])
+                {
+                    dbg('Duplicated parent', childid, JSON.stringify(parents, null, 4));
+                    throw new validationError('ALL OPERATIONS SHOULD ONLY HAVE A PARENT', element);
+                }
+                else
+                {
+                    parents[childid] = element.id;
+                }
+            }
+        });
+    });
+
+    return {'parents' : parents, 'joinsparents': joins_parents};
+}
+
+function construct_json_branch(root, flow)
+{
+    root.children = [];
+
+    if('END' !== root.type && (
+        'JOIN' !== root.type || undefined !== root.children_id
+    ))
+    {
+        
+        root.children_id.forEach( id => {
+        
+            const op = flow.operations.find( el => {return el.id === id; });
+
+            if(undefined === op)
+            {
+                throw new validationError('CONSTRUCT BRANCH: INVALID CHILD ID ' + id, root); 
+            }
+
+
+            if('JOIN' === op.type  
+                && undefined !== op.processedjoin   
+            )
+            {
+               
+                let join = {name : op.name, type : 'JOIN'};
+                root.children.push(join);
+                
+            }
+            else
+                root.children.push(op);
+
+            construct_json_branch(op, flow);
+            
+            if('JOIN' === op.type)
+            {
+                op.processedjoin = true;
+            } 
+            
+
+        });
+
+        
+    }
+    else
+        delete root.children;
+}
 
 
 class basestorage extends EventEmitter{
@@ -300,57 +389,56 @@ class basestorage extends EventEmitter{
       
         dbg('OPERATIONS', JSON.stringify(operations, null, 4));
 
-        let parents = {};
-        let joins_parents = {};
+        const obj = index_opsparent_and_joins(operations, joins); 
 
-        joins.forEach( element => {
-            
-            if(undefined !== joins_parents[element.id])
-            {
-                throw new validationError('DUPLICATED JOIN ID', element);
-            }
-
-            joins_parents[element.id] = [];
-        });
-
-        operations.forEach(element => {
-            element.children_id.forEach(childid => {
-
-                //if child is a join
-                if(undefined !== joins_parents[childid])
-                {
-                    joins_parents[childid].push(element.id);
-                }
-                else
-                {
-                    if(undefined !== parents[childid])
-                    {
-                        dbg('Duplicated parent', childid, JSON.stringify(parents, null, 4));
-                        throw new validationError('ALL OPERATIONS SHOULD ONLY HAVE A PARENT', element);
-                    }
-                    else
-                    {
-                        parents[childid] = element.id;
-                    }
-                }
-            });
-        });
-
-        return {'flow': jsonflow
+        return Object.assign({}, {'flow': jsonflow
             , 'operations' : operations
-            , 'joins' : joins
-            , 'parents' : parents
-            , 'joinsparents': joins_parents
-        };
-
+            , 'joins' : joins} , obj);
+    
     }
 
-    /*
-    storage_flow_to_json_flow(storageflow)
+    /** recreate a flow hierarchy from an array of operations
+     * @param {object} operations array
+     * @returns {object} a json flow object
+    */ 
+    storage_flow_to_json_flow(operations)
     {
+        const joins = operations.filter( el => {return 'JOIN' === el.type;});
+        const obj = index_opsparent_and_joins(operations, joins); 
 
+        const root = operations.find( el => {return 'START' === el.type;});
+
+        const flow = Object.assign({}, {'operations' : operations
+            , 'joins' : joins} , obj);
+            
+        construct_json_branch(root, flow);
+
+        const keys = Object.keys(operation_default);
+
+        operations.forEach(op => {
+
+            delete op.children_id;
+            delete op.id;
+            
+            //remove defaults
+            keys.forEach( k => {
+                if(undefined !== op[k] && op[k] === operation_default[k])
+                    delete op[k];
+            });
+
+            delete op.processedjoin;
+
+        });
+
+        delete root.propertybag;
+        
+
+        return {
+            root: root
+        };
+         
     }
-    */
+    
     
     get events(){ return STORAGEEVENT; }
 

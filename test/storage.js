@@ -133,6 +133,33 @@ describe('STORAGE',  () => {
                 expect(j).to.be.eq(3);
                 
             });
+
+            const keys = Object.keys(flows);
+
+            for(let idx = 0; idx < keys.length; idx++)
+            {
+
+                it('should convert from storage to hierarchical ' + keys[idx], async () => {
+
+                    const originalflow = flows[keys[idx]];
+
+                    const firstflow = JSON.parse(JSON.stringify(originalflow));
+
+                    const storage = config.storage;
+                
+                    const flat = storage.json_flow_to_storage_flow(firstflow);
+
+                    dbg('FLAT', JSON.stringify(flat, null, 4));
+
+                    const hierarchical = storage.storage_flow_to_json_flow(flat.operations);
+                
+                    dbg('FLOW', JSON.stringify(hierarchical, null, 4));
+
+                    expect(hierarchical).to.be.eql(originalflow, 'The original flow and the storage => hirarchical differ');
+
+                });
+
+            }
         });
 
     }
