@@ -1,20 +1,4 @@
-const dbg    = require('debug')('opflow:operations');
-
-
-
-/**  */
-/*
-class OperationManager
-{
-    constructor(){
-        this.processmap = processor_map;
-    }
-
-    
-
-}
-*/
-
+//const dbg    = require('debug')('opflow:operations');
 
 /**  */
 class FlowManager
@@ -104,6 +88,11 @@ class FlowManager
     async get_operation(operationid)
     {
         return this.storage.get_operation(operationid);
+    }
+
+    async is_flow_completed(flowid)
+    {
+        return this.storage.is_flow_completed(flowid); 
     }
 
     /*

@@ -4,6 +4,7 @@
 build: off
 
 test_script:
+  - npm run eslint
   - ./node_modules/.bin/nyc npm test
 
 cache:

@@ -86,6 +86,8 @@ module.exports = class memorystorage extends basestorage  {
     {
         const storageflow = this.json_flow_to_storage_flow(flow);
         this.flows[storageflow.flow.id] = storageflow;
+
+        return storageflow.flow.id;
     }
 
     async reset()
@@ -110,6 +112,25 @@ module.exports = class memorystorage extends basestorage  {
         }
         
         return operations;
+    }
+
+    async is_flow_completed(flownid)
+    {
+        const flow = this.flows[flownid];
+
+        if(undefined === flow)
+        {
+            basestorage.throw_storage_error('invalid flow name');
+        }
+
+        const op = flow.operations.find( el => {return !el.completed;});
+
+        if(undefined === op)
+        {
+            return true;
+        }
+
+        return false;
     }
     
     async load_operations(nomore)

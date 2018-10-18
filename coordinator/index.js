@@ -63,9 +63,17 @@ class Coordinator extends EventEmitter
         this.working = [];
     }
 
+    async loadops()
+    {
+        if(this.op_to_do.length < this.configuration.op_batch)
+        {
+            this.op_to_do = await load_and_process_system(this.op_to_do, this.flow, this.configuration.op_batch);
+        }
+    }
+
     async get_work(processor_name, processor_work_id)
     {
-        this.op_to_do = await load_and_process_system(this.op_to_do, this.flow, this.configuration.op_batch);
+        await this.loadops();
 
         if(0 === this.op_to_do.length)
         {
@@ -111,6 +119,8 @@ class Coordinator extends EventEmitter
             operation.propertybag = propertybag;
             await this.flow.register_success(operation, result);
         }
+
+        await this.loadops();
     }
 
 }
