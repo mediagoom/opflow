@@ -20,6 +20,58 @@ function generateUUID() { // Public Domain/MIT
 }
 */
 
+function operation_is_runnable(element)
+{
+    const time = new Date();
+
+    if(element.completed)
+        return false;
+
+    if(null != element.asof)
+    {
+        if(element.asof > time)
+        {
+            dbg('found future operation: ', element.name, element.id, element.asof);
+            return false;
+        }
+    }
+
+    if(null != element.leasetime)
+    {
+        if(element.leasetime > time)
+        {
+            dbg('found working operation: ', element.name, element.id, element.leasetime);
+            return false;
+        }
+    }
+
+    //now we have a candidate
+
+    return true;
+}
+
+async function operation_has_parent_completed(op, flow, mem)
+{
+    let processop = false;
+    const parentid = flow.parents[op.id];
+                
+    if(
+        'START' == op.type
+                    && (undefined === parentid) 
+    )
+        processop = true;
+    else
+    {
+        //is our parent compleated
+        const opdep = await mem.get_operation(parentid);
+        if(true === opdep.completed && true === opdep.successed)
+        {
+            processop = true;
+        }
+    }
+
+    return processop;
+}
 
 
 module.exports = class memorystorage extends basestorage  {
@@ -71,33 +123,7 @@ module.exports = class memorystorage extends basestorage  {
             
             //find first not compleated
             const op = flow.operations.find(element => {
-                const time = new Date();
-
-                if(element.completed)
-                    return false;
-
-                if(null != element.asof)
-                {
-                    if(element.asof > time)
-                    {
-                        dbg('found future operation: ', element.name, element.id, element.asof);
-                        return false;
-                    }
-                }
-
-                if(null != element.leasetime)
-                {
-                    if(element.leasetime > time)
-                    {
-                        dbg('found working operation: ', element.name, element.id, element.leasetime);
-                        return false;
-                    }
-                }
-
-                //now we have a candidate
-
-                return true;
-
+                return operation_is_runnable(element);
             });
 
             if(undefined === op)
@@ -109,23 +135,7 @@ module.exports = class memorystorage extends basestorage  {
 
             if(undefined === join) //we are not the son of a join
             {
-                let processop = false;
-                const parentid = flow.parents[op.id];
-                
-                if(
-                    'START' == op.type
-                    && (undefined === parentid) 
-                )
-                    processop = true;
-                else
-                {
-                    //is our parent compleated
-                    const opdep = await this.get_operation(parentid);
-                    if(true === opdep.completed && true === opdep.successed)
-                    {
-                        processop = true;
-                    }
-                }
+                let processop = await operation_has_parent_completed(op, flow, this);                
 
                 if(processop)
                 {
@@ -137,22 +147,37 @@ module.exports = class memorystorage extends basestorage  {
             }
             else
             {
+                let all_completed = true;
+
                 for(let idx = 0; idx < join.length; idx++)
                 {   
                     const opdep = await this.get_operation(join[idx]);
                     if(!opdep.completed)
                     {
-                        operations.push(opdep);
-                        if(operations.length >= nomore)
-                            return await this.lease_operations(operations);
-                    }
+                        all_completed = false;
+                        if(operation_is_runnable(opdep))
+                        {
 
+                            let processop = await operation_has_parent_completed(opdep, flow, this);                
+                            
+                            if(processop)
+                            {
+                                
+                                operations.push(opdep);
+                                if(operations.length >= nomore)
+                                    return await this.lease_operations(operations);
+                            }
+                        }
+                    }
                 }
 
-                //we get here all join parents are completed
-                operations.push(op);
-                if(operations.length >= nomore)
-                    return await this.lease_operations(operations);
+                if(all_completed)
+                {
+                    //we get here all join parents are completed
+                    operations.push(op);
+                    if(operations.length >= nomore)
+                        return await this.lease_operations(operations);
+                }
             }
 
         }

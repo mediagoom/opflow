@@ -10,6 +10,11 @@ const coordinator = require('../coordinator');
 
 const expect = chai.expect;
 
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
+
 describe('PROCESSOR',  () => {
         
     config.storage.reset();
@@ -28,17 +33,16 @@ describe('PROCESSOR',  () => {
 
         while(null != op)
         {
-
             const processor = require(op.path);
 
             const result = await processor.process(op.config, op.propertybag);
             
-            await coord.processed(op.tag, true, result, op.propertybag, processor_name, (processor_work_id++));           
+            await coord.processed(op.tag, true, result, op.propertybag, processor_name, processor_work_id);           
 
-            op = await coord.get_work(processor_name, (processor_work_id++));
+            op = await coord.get_work(processor_name, (++processor_work_id));
         }
 
-        expect(processor_work_id).to.be.eq(1);
+        expect(processor_work_id).to.be.eq(2);
 
 
     });
