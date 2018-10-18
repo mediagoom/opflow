@@ -274,16 +274,19 @@ module.exports = class memorystorage extends basestorage  {
         op.modified = new Date();
     }
 
-    /*
-    async get_direct_parent(operation)
+    async get_parent(operation)
     {
+        const flowid = this.flow_id(operation.id);
 
-    }
+        const flow = this.flows[flowid];
+        const join = flow.joinsparents[operation.id];
+        
+        if(undefined === join)
+        {
+            return flow.parents[operation.id];
+        }
 
-    async get_direct_dependents(operation)
-    {
-
-    }
-    */
+        return join;
+    } 
     
 };

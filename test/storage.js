@@ -137,7 +137,7 @@ describe('STORAGE',  () => {
 
     }
 
-    describe('HANDLE BROKEN FLOW DESCRIPTOR', () => {
+    describe('handle broken flow descriptor', () => {
 
         const brokenflows = require('./broken');
 

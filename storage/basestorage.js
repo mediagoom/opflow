@@ -81,6 +81,11 @@ function op_default(op)
     if(null == oper.children)
         oper.children = new Array();
 
+    if('START' !== oper.type)
+        oper.propertybag = null; 
+    else
+        oper.propertybag = {};
+
     return oper;
 }
 
@@ -265,7 +270,15 @@ class basestorage extends EventEmitter{
     }
     */
     
-    /** flatten out the flow hierarchy */
+    /** flatten out the flow hierarchy. 
+     * @param {object} jsonflow The flow object 
+     * @returns {object} {'flow': <the-original-flow>
+            , 'operations' : array of operations
+            , 'joins' : array of joins
+            , 'parents' : object index of direct parents
+            , 'joinsparents': object index of array of joins parents
+        }
+    */
     json_flow_to_storage_flow(jsonflow)
     {
         const operations = [];
@@ -284,7 +297,7 @@ class basestorage extends EventEmitter{
         }
 
         flatten_tree(jsonflow.id, root, operations, joins);
-
+      
         dbg('OPERATIONS', JSON.stringify(operations, null, 4));
 
         let parents = {};

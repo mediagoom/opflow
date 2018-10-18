@@ -69,8 +69,41 @@ const simpleecho = {
     }
 };
 
+const basiccode = {
+    root: {
+        type : 'START'
+        , name : 'ROOT'
+        , children:[
+            {
+                type: '../operation/user/code'
+                , name: 'same code'
+                , config: {
+                    code: ` propertybag.pippo = 'pippo'; 
+                            propertybag.pluto = '12345';
+                    `
+                }
+                , children:[
+                    {
+                        type: '../operation/user/code'
+                        , name: 'same code 2'
+                        , config: {
+                            code: ` let a = propertybag.pippo + '--' + '12345';
+                            
+                            `
+                        }
+                        , children:[
+                            {type: 'END'}
+                        ]
+                    } 
+                ]
+            }
+        ]
+    }
+};
+
 module.exports = {
     basicflow
     , simplejoin
     , simpleecho
+    , basiccode
 };

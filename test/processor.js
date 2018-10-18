@@ -20,7 +20,12 @@ describe('PROCESSOR',  () => {
     config.storage.reset();
 
     const testflows = {
-        'simpleecho' : {
+        'basiccode' : {
+            'flow' : flows.basiccode
+            , 'userops' : 2
+            , 'complete' : true 
+        }
+        , 'simpleecho' : {
             'flow' : flows.simpleecho
             , 'userops' : 2
             , 'complete' : true 

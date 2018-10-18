@@ -41,6 +41,8 @@ class FlowManager
 
     async register_failure(operation, message)
     {
+        operation.result = message;
+        
         const type = await this.storage.get_type(operation.type);
 
         await this.storage.add_history(operation, message, false);
@@ -62,6 +64,8 @@ class FlowManager
 
     async register_success(operation, message)
     {
+        operation.result = message;
+        
         await this.storage.add_history(operation, message, true);
         return this.storage.complete_operation(operation, true);
     }
@@ -93,6 +97,11 @@ class FlowManager
     async is_flow_completed(flowid)
     {
         return this.storage.is_flow_completed(flowid); 
+    }
+
+    async get_parent(operation)
+    {
+        return this.storage.get_parent(operation);
     }
 
     /*

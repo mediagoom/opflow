@@ -1,6 +1,15 @@
 const EventEmitter = require('events');
 const dbg    = require('debug')('opflow:processor');
 
+class coordinatorError extends Error
+{
+    constructor(msg)
+    {
+        super(msg);
+
+    }
+}
+
 const config_defaults = {
     op_batch : 3
 };
@@ -22,6 +31,31 @@ async function load_and_process_system(op_to_do, flow, batch)
         }
 
         let op = op_to_do[0];
+
+        let opparent = await flow.get_parent(op);
+
+        if(undefined !== opparent)
+        {
+            if(Array.isArray(opparent))
+            {
+                if('JOIN' !== op.type)
+                {
+                    throw new coordinatorError('Parent array for not join ' + op.id);
+                } 
+            }
+            else
+            {
+                opparent = await flow.get_operation(opparent);
+                op.propertybag = opparent.propertybag;
+            }
+        }
+        else
+        {
+            if('START' !== op.type)
+            {
+                throw new coordinatorError('Missing Parent for not a START ' + op.id); 
+            }
+        }
 
         op_to_do = op_to_do.slice(1);
             
@@ -111,6 +145,8 @@ class Coordinator extends EventEmitter
         {
             throw 'invalid processor';
         }
+
+        operation.executed = true;
 
         if(!successed)
             await this.flow.register_failure(operation, result);
