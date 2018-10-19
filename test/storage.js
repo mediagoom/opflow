@@ -9,8 +9,6 @@ const flows = require('./flows');
 const storageError = require('../storage/storageError');
 
 const expect = chai.expect;
-
-
     
 describe('STORAGE',  () => {
 
@@ -20,7 +18,7 @@ describe('STORAGE',  () => {
     {    
         describe(storages[idx],  () => {    
 
-            config.storage.reset();
+            config.change_storage(storages[idx]);
 
             it('should support save flow', async () => {
 

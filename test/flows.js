@@ -48,21 +48,41 @@ const simpleecho = {
         , children:[
             {
                 type: 'echo'
-                , name: 'ECHO FIRST'
-                , config: 'HELLO FROM ECHO'
+                , name: 'ROOT ECHO'
+                , config: 'HELLO FROM ROOT ECHO'
                 , children:[
-                    {type: 'JOIN'
-                        , name: 'SINGLEJOIN'
-                        , children:[{type: 'END'}]
+                    {
+                        type: 'echo'
+                        , name: 'ECHO FIRST'
+                        , config: 'HELLO FROM ECHO'
+                        , children:[
+                            {
+                                type: 'JOIN'
+                                , name: 'SINGLEJOIN'
+                                
+                                , children:[
+                                    { type: '../operation/user/code'
+                                        , name: 'echo code1'
+                                        , config: {
+                                            code: ` 3 + 7; 
+                                         `
+                                        }
+                                        , children:[{type: 'END'}]
+                                    }
+                                ]
+                                
+                                
+                            }
+                        ]
                     }
-                ]
-            }
-            , {
-                type: 'echo'
-                , name: 'ECHO SECOND'
-                , config: 'HELLO FROM ECHO 2'
-                , children:[
-                    {type: 'JOIN', name: 'SINGLEJOIN'}
+                    , {
+                        type: 'echo'
+                        , name: 'ECHO SECOND'
+                        , config: 'HELLO FROM ECHO 2'
+                        , children:[
+                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                        ]
+                    }
                 ]
             }
         ]
@@ -75,8 +95,8 @@ const basiccode = {
         , name : 'ROOT'
         , children:[
             {
-                type: '../operation/user/code'
-                , name: 'same code'
+                type: 'code'
+                , name: 'root code'
                 , config: {
                     code: ` propertybag.pippo = 'pippo'; 
                             propertybag.pluto = '12345';
@@ -85,17 +105,45 @@ const basiccode = {
                 , children:[
                     {
                         type: '../operation/user/code'
-                        , name: 'same code 2'
+                        , name: 'echo code1'
                         , config: {
-                            code: ` let a = propertybag.pippo + '--' + '12345';
-                            
+                            code: ` propertybag.pippo1 = propertybag.pippo + propertybag.pluto;
+                            propertybag.pippo = 'pippo1';
                             `
                         }
-                        , children:[
-                            {type: 'END'}
+                        , children: [{
+                            type: 'JOIN'
+                            , name: 'SINGLEJOIN'
+                            
+                            , children:[
+                                { type: '../operation/user/code'
+                                    , name: 'echo code1'
+                                    , config: {
+                                        code: ` 3 + 7; 
+                                     `
+                                    }
+                                    , children:[{type: 'END'}]
+                                }
+                            ]
+                        }]
+                        
+                    }
+                    , {
+                        type: '../operation/user/code'
+                        , name: 'echo code 2'
+                        , config: {
+                            code: ` propertybag.pippo = 'pippo2' 
+                            let a = propertybag.pippo + '--' + '12345';
+                            a;
+                            `
+                        }
+                        , children: [{
+                            type: 'JOIN'
+                            , name: 'SINGLEJOIN'
+                        }
                         ]
                     } 
-                ]
+                ] 
             }
         ]
     }

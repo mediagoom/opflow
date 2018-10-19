@@ -12,8 +12,9 @@ class Config
         this._storage = null;
     }
 
+    
     /** Return the singleton storage. 
-     * There can be only one storage.
+     *  There can be only one storage.
     */
     get storage()
     {
@@ -23,9 +24,19 @@ class Config
             this._storage = new storageclass(require(this.data.typemap));        
         }
              
-
         return this._storage;
 
+    }
+    /**
+     * Allow to change the storage.
+     * @param {string} storagepath the requre path to the new storage.
+     */
+    change_storage(storagepath)
+    {
+        this.data.storage = storagepath;
+        this._storage = null;
+
+        this.storage.reset();
     }
 }
 

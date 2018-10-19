@@ -289,4 +289,17 @@ module.exports = class memorystorage extends basestorage  {
         return join;
     } 
     
+    async get_hierarchical_flow(flowid)
+    {
+        const flow = this.flows[flowid];
+
+        return this.storage_flow_to_json_flow(flow.operations);
+    }
+
+    async get_storage_flow(flowid)
+    {
+        const flow = this.flows[flowid];
+        return flow.operations;
+    }
+   
 };

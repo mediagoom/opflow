@@ -104,6 +104,15 @@ class FlowManager
         return this.storage.get_parent(operation);
     }
 
+    async get_hierarchical_flow(flowid)
+    {
+        return this.storage.get_hierarchical_flow(flowid);
+    }
+
+    async get_storage_flow(flowid)
+    {
+        return this.storage.get_storage_flow(flowid);
+    }
     /*
     async get_direct_dependents(operation)
     {

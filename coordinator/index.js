@@ -42,6 +42,8 @@ async function load_and_process_system(op_to_do, flow, batch)
                 {
                     throw new coordinatorError('Parent array for not join ' + op.id);
                 } 
+
+                op.propertybag = {};
             }
             else
             {
@@ -82,8 +84,6 @@ async function load_and_process_system(op_to_do, flow, batch)
 
     return result;
 }
-
-
 /** Coordinator coordinate the work of the processors */
 class Coordinator extends EventEmitter
 {
@@ -104,7 +104,17 @@ class Coordinator extends EventEmitter
             this.op_to_do = await load_and_process_system(this.op_to_do, this.flow, this.configuration.op_batch);
         }
     }
-
+    /**
+     * Called by processor to get the work to be done.
+     * @param {string} processor_name the name of the processor
+     * @param {string} processor_work_id the identifier of this operation as will be processed by the processor
+     * @returns {object} {
+            path : <the require path of the operation>
+            , config: <the operation configuration>
+            , tag: <the operation opaque identifier>
+            , propertybag: <the operation flow propertybag>
+        };
+     */
     async get_work(processor_name, processor_work_id)
     {
         await this.loadops();
@@ -129,11 +139,19 @@ class Coordinator extends EventEmitter
             path : operation.external_type
             , config: operation.config
             , tag: operation.id
-            , propertybag: operation.propertybag
+            , propertybag: JSON.parse(JSON.stringify(operation.propertybag))
         };
 
     }
-
+    /**
+     * Called by the processor to signal the compleation successful or not of an operation
+     * @param {*} tag 
+     * @param {*} successed 
+     * @param {*} result 
+     * @param {*} propertybag 
+     * @param {*} processor_name 
+     * @param {*} processor_work_id 
+     */
     async processed(tag, successed, result, propertybag, processor_name, processor_work_id)
     {
         const operation = await this.flow.get_operation(tag);
@@ -159,6 +177,10 @@ class Coordinator extends EventEmitter
         await this.loadops();
     }
 
+    async get_hierarchical_flow(flowid)
+    {
+        return this.flow.get_hierarchical_flow(flowid); 
+    }
 }
 
 
