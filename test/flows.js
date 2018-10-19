@@ -143,6 +143,21 @@ const basiccode = {
                         }
                         ]
                     } 
+                    , {
+                        type: 'code'
+                        , name: 'echo code 3'
+                        , config: {
+                            code: ` propertybag.pippo = 'pippo3' 
+                            let a = propertybag.pippo + '--' + '12345';
+                            a;
+                            `
+                        }
+                        , children: [{
+                            type: 'JOIN'
+                            , name: 'SINGLEJOIN'
+                        }
+                        ]
+                    } 
                 ] 
             }
         ]

@@ -64,7 +64,7 @@ async function operation_has_parent_completed(op, flow, mem)
     {
         //is our parent compleated
         const opdep = await mem.get_operation(parentid);
-        if(true === opdep.completed && true === opdep.successed)
+        if(true === opdep.completed && true === opdep.succeeded)
         {
             processop = true;
         }
@@ -228,7 +228,7 @@ module.exports = class memorystorage extends basestorage  {
             basestorage.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
 
         dbg('COMPLETED', op.name, op.type, op.id);
-        op.successed = success;
+        op.succeeded = success;
         op.completed = true;
         op.modified = new Date();
     }
@@ -267,7 +267,7 @@ module.exports = class memorystorage extends basestorage  {
 
     async reset_op(op)
     {
-        op.successed = false;
+        op.succeeded = false;
         op.completed = false;
         op.executed  = false;
         op.leasetime = undefined;

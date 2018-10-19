@@ -146,13 +146,13 @@ class Coordinator extends EventEmitter
     /**
      * Called by the processor to signal the compleation successful or not of an operation
      * @param {*} tag 
-     * @param {*} successed 
+     * @param {*} succeeded 
      * @param {*} result 
      * @param {*} propertybag 
      * @param {*} processor_name 
      * @param {*} processor_work_id 
      */
-    async processed(tag, successed, result, propertybag, processor_name, processor_work_id)
+    async processed(tag, succeeded, result, propertybag, processor_name, processor_work_id)
     {
         const operation = await this.flow.get_operation(tag);
 
@@ -166,7 +166,7 @@ class Coordinator extends EventEmitter
 
         operation.executed = true;
 
-        if(!successed)
+        if(!succeeded)
             await this.flow.register_failure(operation, result);
         else
         {

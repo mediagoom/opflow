@@ -12,7 +12,7 @@ const operation_default =  {
     ,'children': null
     ,'result': null
     ,'completed': false
-    ,'successed': false
+    ,'succeeded': false
     ,'executed': false
     ,'history': null 
     ,'created': null
