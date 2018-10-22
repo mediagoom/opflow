@@ -1,26 +1,15 @@
 
 module.exports = {
-    process : async function(config, propertybag)
+    process : async function(config, propertyBag)
     {
         let result = 'ECHO: ';
-        if(null != config)
-        {
-            result += JSON.stringify(config, null, 4);
-            result += '\n';
-        }
-        else
-        {
-            result += '[no config]';
-        }
-
-        if(null != propertybag)
-        {
-            result += JSON.stringify(propertybag, null, 4);
-            result += '\n';
-        }
-        else
-            result += '[no propertybag]';
-
+       
+        result += JSON.stringify(config, null, 4);
+        result += '\n';
+          
+        result += JSON.stringify(propertyBag, null, 4);
+        result += '\n';
+        
         return result; 
     }
 };

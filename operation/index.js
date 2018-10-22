@@ -1,11 +1,11 @@
 //const dbg    = require('debug')('opflow:operations');
 
 /**  */
-class FlowManager
+class flow_manager
 {
-    constructor(operationstorage)
+    constructor(operation_storage)
     {
-        this.storage = operationstorage;
+        this.storage = operation_storage;
     }    
 
     async save_flow(flow)
@@ -13,9 +13,9 @@ class FlowManager
         return this.storage.save_flow(flow);
     }
 
-    async load_operations(nomore)
+    async load_operations(no_more)
     {
-        return this.storage.load_operations(nomore);
+        return this.storage.load_operations(no_more);
     }
 
     async type_is_system(typename)
@@ -36,7 +36,7 @@ class FlowManager
     {
         const type = await this.storage.get_type(operation.type);
         
-        return type.process(operation.config, operation.propertybag, operation, this);
+        return type.process(operation.config, operation.propertyBag, operation, this);
     }
 
     async register_failure(operation, message)
@@ -47,9 +47,9 @@ class FlowManager
 
         await this.storage.add_history(operation, message, false);
 
-        const previus_failures = await this.storage.get_operation_failures_count(operation);
+        const previous_failures = await this.storage.get_operation_failures_count(operation);
 
-        if(type.retries <= previus_failures)
+        if(type.retries <= previous_failures )
         {
             await this.storage.complete_operation(operation, false);
         }
@@ -58,8 +58,10 @@ class FlowManager
             const type = await this.storage.get_type(operation.type);
             let time = new Date();
             time.setSeconds(time.getSeconds() + type.retries_interval);
-            await this.storage.set_operation_asof(operation, time);
+            await this.storage.set_operation_asOf(operation, time);
         }
+
+        operation.lease_time = null;
     }
 
     async register_success(operation, message)
@@ -75,13 +77,13 @@ class FlowManager
         return this.storage.reset_op(operation);
     }
 
-    async set_operation_asof(operation, asof)
+    async set_operation_asOf(operation, asOf)
     {
-        if(undefined === asof || null === asof)
+        if(undefined === asOf || null === asOf)
         {
-            asof = new Date();
+            asOf = new Date();
         }
-        return this.storage.set_operation_asof(operation, asof); 
+        return this.storage.set_operation_asOf(operation, asOf); 
     }
 
     async get_operation_history(operation)
@@ -89,14 +91,14 @@ class FlowManager
         return this.storage.get_operation_history(operation);
     }
 
-    async get_operation(operationid)
+    async get_operation(operation_id)
     {
-        return this.storage.get_operation(operationid);
+        return this.storage.get_operation(operation_id);
     }
 
-    async is_flow_completed(flowid)
+    async is_flow_completed(flow_id)
     {
-        return this.storage.is_flow_completed(flowid); 
+        return this.storage.is_flow_completed(flow_id); 
     }
 
     async get_parent(operation)
@@ -104,14 +106,14 @@ class FlowManager
         return this.storage.get_parent(operation);
     }
 
-    async get_hierarchical_flow(flowid)
+    async get_hierarchical_flow(flow_id)
     {
-        return this.storage.get_hierarchical_flow(flowid);
+        return this.storage.get_hierarchical_flow(flow_id);
     }
 
-    async get_storage_flow(flowid)
+    async get_storage_flow(flow_id)
     {
-        return this.storage.get_storage_flow(flowid);
+        return this.storage.get_storage_flow(flow_id);
     }
     /*
     async get_direct_dependents(operation)
@@ -126,6 +128,6 @@ class FlowManager
 }
 
 //const Operation = new OperationManager();
-//const Flow = new FlowManager();
+//const Flow = new flow_manager();
 
-module.exports = {/*OperationManager,*/ FlowManager};
+module.exports = {/*OperationManager,*/ flow_manager};

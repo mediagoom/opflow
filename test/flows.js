@@ -1,5 +1,5 @@
 
-const basicflow = {
+const basicFlow = {
     root: {
         type : 'START'
         , name : 'ROOT'
@@ -41,7 +41,7 @@ const simplejoin = {
     }
 };
 
-const simpleecho = {
+const simpleEcho = {
     root: {
         type : 'START'
         , name : 'ROOT'
@@ -89,7 +89,7 @@ const simpleecho = {
     }
 };
 
-const basiccode = {
+const basicCode = {
     root: {
         type : 'START'
         , name : 'ROOT'
@@ -98,8 +98,8 @@ const basiccode = {
                 type: 'code'
                 , name: 'root code'
                 , config: {
-                    code: ` propertybag.pippo = 'pippo'; 
-                            propertybag.pluto = '12345';
+                    code: ` propertyBag.pippo = 'pippo'; 
+                            propertyBag.pluto = '12345';
                     `
                 }
                 , children:[
@@ -107,8 +107,8 @@ const basiccode = {
                         type: '../operation/user/code'
                         , name: 'echo code1'
                         , config: {
-                            code: ` propertybag.pippo1 = propertybag.pippo + propertybag.pluto;
-                            propertybag.pippo = 'pippo1';
+                            code: ` propertyBag.pippo1 = propertyBag.pippo + propertyBag.pluto;
+                            propertyBag.pippo = 'pippo1';
                             `
                         }
                         , children: [{
@@ -132,8 +132,8 @@ const basiccode = {
                         type: '../operation/user/code'
                         , name: 'echo code 2'
                         , config: {
-                            code: ` propertybag.pippo = 'pippo2' 
-                            let a = propertybag.pippo + '--' + '12345';
+                            code: ` propertyBag.pippo = 'pippo2' 
+                            let a = propertyBag.pippo + '--' + '12345';
                             a;
                             `
                         }
@@ -147,8 +147,8 @@ const basiccode = {
                         type: 'code'
                         , name: 'echo code 3'
                         , config: {
-                            code: ` propertybag.pippo = 'pippo3' 
-                            let a = propertybag.pippo + '--' + '12345';
+                            code: ` propertyBag.pippo = 'pippo3' 
+                            let a = propertyBag.pippo + '--' + '12345';
                             a;
                             `
                         }
@@ -165,8 +165,8 @@ const basiccode = {
 };
 
 module.exports = {
-    basicflow
+    basicFlow
     , simplejoin
-    , simpleecho
-    , basiccode
+    , simpleEcho
+    , basicCode
 };

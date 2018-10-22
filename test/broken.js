@@ -123,4 +123,34 @@ module.exports = { broken : [
             }
         }
     }
+    , {
+        case : 'join not single child'
+        , flow: {
+            root: {
+                type : 'START'
+                , name : 'ROOT'
+                , children:[
+                    {
+                        type: 'NULL'
+                        , name: 'FIRST'
+                        , children:[
+                            {
+                                type: 'JOIN'
+                                , name: 'SINGLEJOIN'
+                                , children:[{type: 'END'}]
+                            }
+                            , {type: 'END'} 
+                        ]
+                    }
+                    , {
+                        type: 'NULL'
+                        , name: 'SECOND'
+                        , children:[
+                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                        ]
+                    }
+                ]
+            }
+        }
+    }
 ]};

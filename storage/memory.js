@@ -27,21 +27,25 @@ function operation_is_runnable(element)
     if(element.completed)
         return false;
 
-    if(null != element.asof)
+    if(null != element.asOf)
     {
-        if(element.asof > time)
+        if(element.asOf > time)
         {
-            dbg('found future operation: ', element.name, element.id, element.asof);
+            dbg('found future operation: ', element.name, element.id, element.asOf);
             return false;
         }
     }
 
-    if(null != element.leasetime)
+    if(null != element.lease_time)
     {
-        if(element.leasetime > time)
+        if(element.lease_time > time)
         {
-            dbg('found working operation: ', element.name, element.id, element.leasetime);
+            dbg('found working operation: ', element.id, element.name, element.lease_time);
             return false;
+        }
+        else
+        {
+            dbg('found expired operation: ', element.id, element.name, element.lease_time);
         }
     }
 
@@ -106,9 +110,9 @@ module.exports = class memorystorage extends basestorage  {
             let time =  new Date();
             time.setSeconds(time.getSeconds() + type.lease);
 
-            element.leasetime = time;
+            element.lease_time = time;
 
-            dbg('leasing op:', element.name, element.id, element.leasetime, type.lease, element.type);
+            dbg('leasing op:', element.name, element.id, element.lease_time, type.lease, element.type);
         }
         
         return operations;
@@ -133,7 +137,7 @@ module.exports = class memorystorage extends basestorage  {
         return false;
     }
     
-    async load_operations(nomore)
+    async load_operations(no_more)
     {
         let operations = [];
         let keys = Object.keys(this.flows);
@@ -142,7 +146,7 @@ module.exports = class memorystorage extends basestorage  {
         {
             const flow = this.flows[keys[k]];
             
-            //find first not compleated
+            //find first not complected
             const op = flow.operations.find(element => {
                 return operation_is_runnable(element);
             });
@@ -162,7 +166,7 @@ module.exports = class memorystorage extends basestorage  {
                 {
                     dbg('found op to run: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
                     operations.push(op);
-                    if(operations.length >= nomore)
+                    if(operations.length >= no_more)
                         return await this.lease_operations(operations);
                 }
             }
@@ -183,9 +187,9 @@ module.exports = class memorystorage extends basestorage  {
                             
                             if(processop)
                             {
-                                
+                                dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, opdep, {children : null}), null, 4));
                                 operations.push(opdep);
-                                if(operations.length >= nomore)
+                                if(operations.length >= no_more)
                                     return await this.lease_operations(operations);
                             }
                         }
@@ -194,9 +198,11 @@ module.exports = class memorystorage extends basestorage  {
 
                 if(all_completed)
                 {
+                    dbg('found op to run [all]: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+                                
                     //we get here all join parents are completed
                     operations.push(op);
-                    if(operations.length >= nomore)
+                    if(operations.length >= no_more)
                         return await this.lease_operations(operations);
                 }
             }
@@ -206,18 +212,18 @@ module.exports = class memorystorage extends basestorage  {
         return await this.lease_operations(operations);
     }
 
-    async get_operation(operationid)
+    async get_operation(operation_id)
     {
-        if(undefined === operationid)
+        if(undefined === operation_id)
         {
-            basestorage.throw_storage_error('undefined operationid to get_operations');
+            basestorage.throw_storage_error('undefined operation_id to get_operations');
         }
 
-        const flowid = this.flow_id(operationid);
+        const flow_id = this.flow_id(operation_id);
 
-        const operations = this.flows[flowid].operations;
+        const operations = this.flows[flow_id].operations;
 
-        return operations.find(element => {return element.id === operationid;});
+        return operations.find(element => {return element.id === operation_id;});
     }
 
     async complete_operation(operation, success)
@@ -231,6 +237,8 @@ module.exports = class memorystorage extends basestorage  {
         op.succeeded = success;
         op.completed = true;
         op.modified = new Date();
+
+        operation.lease_time = null;
     }
 
     async get_operation_history(operation)
@@ -244,9 +252,9 @@ module.exports = class memorystorage extends basestorage  {
         return failure.length;
     }
 
-    async set_operation_asof(operation, asof)
+    async set_operation_asOf(operation, asOf)
     {
-        operation.asof = asof;
+        operation.asOf = asOf;
     }
 
     async add_history(operation, message, success)
@@ -262,7 +270,7 @@ module.exports = class memorystorage extends basestorage  {
             }
         );
 
-        operation.leasetime = null;
+        
     }
 
     async reset_op(op)
@@ -270,15 +278,15 @@ module.exports = class memorystorage extends basestorage  {
         op.succeeded = false;
         op.completed = false;
         op.executed  = false;
-        op.leasetime = undefined;
+        op.lease_time = undefined;
         op.modified = new Date();
     }
 
     async get_parent(operation)
     {
-        const flowid = this.flow_id(operation.id);
+        const flow_id = this.flow_id(operation.id);
 
-        const flow = this.flows[flowid];
+        const flow = this.flows[flow_id];
         const join = flow.joinsparents[operation.id];
         
         if(undefined === join)
@@ -289,16 +297,16 @@ module.exports = class memorystorage extends basestorage  {
         return join;
     } 
     
-    async get_hierarchical_flow(flowid)
+    async get_hierarchical_flow(flow_id)
     {
-        const flow = this.flows[flowid];
+        const flow = this.flows[flow_id];
 
         return this.storage_flow_to_json_flow(flow.operations);
     }
 
-    async get_storage_flow(flowid)
+    async get_storage_flow(flow_id)
     {
-        const flow = this.flows[flowid];
+        const flow = this.flows[flow_id];
         return flow.operations;
     }
    

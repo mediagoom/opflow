@@ -7,8 +7,8 @@ const operation_default =  {
     ,'name': null
     ,'config': null
     ,'type': null
-    ,'asof': null
-    ,'leasetime': null
+    ,'asOf': null
+    ,'lease_time': null
     ,'children': null
     ,'result': null
     ,'completed': false
@@ -17,7 +17,7 @@ const operation_default =  {
     ,'history': null 
     ,'created': null
     ,'modified': null
-    ,'propertybag': null
+    ,'propertyBag': null
     ,'stoponerror' : true
 };
 
@@ -70,9 +70,9 @@ function newid()
     return n.toString() + '-' + j;
 }
 
-function opid(flowid)
+function opid(flow_id)
 {
-    return flowid + '/' + newid();
+    return flow_id + '/' + newid();
 }
 
 function op_default(op)
@@ -82,9 +82,9 @@ function op_default(op)
         oper.children = new Array();
 
     if('START' !== oper.type)
-        oper.propertybag = null; 
+        oper.propertyBag = null; 
     else
-        oper.propertybag = {};
+        oper.propertyBag = {};
 
     return oper;
 }
@@ -104,18 +104,18 @@ function find_join(targetjoin, joins)
     return join;
 }
 
-function flatten_tree(flowid, root, operations, joins)
+function flatten_tree(flow_id, root, operations, joins)
 {
     root = op_default(root);
     root.children_id = [];
 
     if(null == root.id)
-        root.id = opid(flowid);
+        root.id = opid(flow_id);
 
     root.children.forEach(element => {
         
         if(null == element.id)
-            element.id = opid(flowid);
+            element.id = opid(flow_id);
 
         if(element.type == 'JOIN')
         {
@@ -144,7 +144,7 @@ function flatten_tree(flowid, root, operations, joins)
             }
 
             root.children.forEach(element => {
-                flatten_tree(flowid, element, operations, joins);
+                flatten_tree(flow_id, element, operations, joins);
             });
         }
     }
@@ -165,7 +165,7 @@ function flatten_tree(flowid, root, operations, joins)
             operations.push(root);            
             //we never seen this join so process children
             root.children.forEach(element => {
-                flatten_tree(flowid, element, operations, joins);
+                flatten_tree(flow_id, element, operations, joins);
             });
         }
         else
@@ -360,7 +360,7 @@ class basestorage extends EventEmitter{
     */
     
     /** flatten out the flow hierarchy. 
-     * @param {object} jsonflow The flow object 
+     * @param {object} json_flow The flow object 
      * @returns {object} {'flow': <the-original-flow>
             , 'operations' : array of operations
             , 'joins' : array of joins
@@ -368,30 +368,30 @@ class basestorage extends EventEmitter{
             , 'joinsparents': object index of array of joins parents
         }
     */
-    json_flow_to_storage_flow(jsonflow)
+    json_flow_to_storage_flow(json_flow)
     {
         const operations = [];
         const joins = [];
 
-        let root = jsonflow.root;
+        let root = json_flow.root;
 
         if(null == root || root.type != 'START')
         {
             basestorage.throw_storage_error('INVALID ROOT OPERATION');
         }
 
-        if(null == jsonflow.id)
+        if(null == json_flow.id)
         {
-            jsonflow.id = newid();
+            json_flow.id = newid();
         }
 
-        flatten_tree(jsonflow.id, root, operations, joins);
+        flatten_tree(json_flow.id, root, operations, joins);
       
         dbg('OPERATIONS', JSON.stringify(operations, null, 4));
 
         const obj = index_opsparent_and_joins(operations, joins); 
 
-        return Object.assign({}, {'flow': jsonflow
+        return Object.assign({}, {'flow': json_flow
             , 'operations' : operations
             , 'joins' : joins} , obj);
     
@@ -430,7 +430,7 @@ class basestorage extends EventEmitter{
 
         });
 
-        delete root.propertybag;
+        delete root.propertyBag;
         
 
         return {

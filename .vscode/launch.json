@@ -28,5 +28,21 @@
             }
             
         }
+        , {
+            "name": "Debug Mocha tests regex",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["-d", "./test/**/*.js", "-g", "delay"],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            
+            "env": {
+                "NODE_ENV": "development"
+                , "DEBUG" : "opflow:*"
+            }
+            
+        }
     ]
 }

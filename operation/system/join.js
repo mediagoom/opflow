@@ -5,43 +5,43 @@ module.exports =
     /**
      * The join operation has to export a property bag from all parents.
      */
-    process : async function(config, propertybag, operation, flow)
+    process : async function(config, propertyBag, operation, flow)
     {
-        let opparent = await flow.get_parent(operation);
+        let operation_parent = await flow.get_parent(operation);
 
-        if(!Array.isArray(opparent))
+        if(!Array.isArray(operation_parent))
         {
             throw new Error('JOIN OPERATION WITHOUT A PARENT ARRAY');
         }
 
-        for(let idx = 0; idx < opparent.length; idx++)
+        for(let idx = 0; idx < operation_parent.length; idx++)
         {
-            const opo = await flow.get_operation(opparent[idx]);
+            const opo = await flow.get_operation(operation_parent[idx]);
 
-            let keys = Object.keys(opo.propertybag);
+            let keys = Object.keys(opo.propertyBag);
 
             for(let j = 0; j < keys.length; j++)
             {
                 const k = keys[j];
-                if(undefined === propertybag[k])
+                if(undefined === propertyBag[k])
                 {
-                    propertybag[k] = opo.propertybag[k];
+                    propertyBag[k] = opo.propertyBag[k];
                 }
                 else
                 {
 
-                    if(!Array.isArray(propertybag[k]))
+                    if(!Array.isArray(propertyBag[k]))
                     {
-                        if(propertybag[k] !== opo.propertybag[k])
+                        if(propertyBag[k] !== opo.propertyBag[k])
                         {
-                            const val = propertybag[k];
-                            propertybag[k] = [val];
-                            propertybag[k].push(opo.propertybag[k]);
+                            const val = propertyBag[k];
+                            propertyBag[k] = [val];
+                            propertyBag[k].push(opo.propertyBag[k]);
                         }
                     }
                     else
                     {
-                        propertybag[k].push(opo.propertybag[k]);
+                        propertyBag[k].push(opo.propertyBag[k]);
                     }
 
                     

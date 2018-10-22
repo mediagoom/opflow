@@ -3,11 +3,11 @@ const chai   = require('chai');
 const config = require('../config');
 const dbg    = require('debug')('opflow:processor-test');
 //const operation = require('../operation').OperationManager;
-const flow  = require('../operation').FlowManager;
+const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
 
 const coordinator = require('../coordinator');
-//const processor = require('../processor');
+const processor = require('../processor');
 
 const expect = chai.expect;
 
@@ -19,94 +19,111 @@ describe('PROCESSOR', () => {
         
     config.storage.reset();
 
-    const testflows = {
-        'basiccode' : {
-            'flow' : flows.basiccode
-            , 'userops' : 5 
+    console.log('PROCESSOR TEST', process.env.DEBUG);
+
+    const test_flows = {
+        'basicCode' : {
+            'flow' : flows.basicCode
+            , 'user_operations' : 5 
             , 'complete' : true 
         }
-        , 'simpleecho' : {
-            'flow' : flows.simpleecho
-            , 'userops' : 4
+        , 'simpleEcho' : {
+            'flow' : flows.simpleEcho
+            , 'user_operations' : 4
             , 'complete' : true 
         }
-        , 'basicflow' : {
-            'flow' : flows.basicflow
-            , 'userops' : 0
+        , 'basicFlow' : {
+            'flow' : flows.basicFlow
+            , 'user_operations' : 0
             , 'complete' : true 
         }
     };
 
-    const flowman = new flow(config.storage);
-    const coord = new coordinator(flowman, {});
+    const flow_manager= new flow(config.storage);
+    const coord = new coordinator(flow_manager, {});
+    const processor_name = 'test_processor';
 
-    const flowkey = Object.keys(testflows);
+    const flow_key = Object.keys(test_flows);
 
-    for(let idx = 0; idx < flowkey.length; idx++)
+    for(let idx = 0; idx < flow_key.length; idx++)
     {
-        const key = flowkey[idx];
-        const testflow = testflows[key].flow;
-        const userops = testflows[key].userops;
-        const shouldend = testflows[key].complete;
+        const key = flow_key[idx];
+        const test_flow = test_flows[key].flow;
+        const user_operations = test_flows[key].user_operations;
+        const should_end = test_flows[key].complete;
 
-        it('should process operation and forward propertybag [' + key + ']', async () => {
+        
+        let processor_work_id = 0;
+
+        it('should process operation and forward propertyBag [' + key + ']', async () => {
             
-            const firstflow = JSON.parse(JSON.stringify(testflow)); 
-            const flowid = await flowman.save_flow(firstflow);
-                     
-            //firstflow.name = key;
-
-            const processor_name = 'test_processor';
-            let processor_work_id = 0;
-            const propertybag_checker = 'ahdodnthedhgaerehgfoaf';
+            const first_flow = JSON.parse(JSON.stringify(test_flow)); 
+            const flow_id = await flow_manager.save_flow(first_flow);
+            
+            const propertyBag_checker = 'ahdodnthedhgaerehgfoaf';
             
             let op = await coord.get_work(processor_name, processor_work_id);
             if(null != op){
-                expect(op.propertybag).to.not.have.property('propertybag_checker');
-                op.propertybag.propertybag_checker = propertybag_checker;
+                expect(op.propertyBag).to.not.have.property('propertyBag_checker');
+                op.propertyBag.propertyBag_checker = propertyBag_checker;
             }
 
             while(null != op)
             {
-                dbg('propertybag', op.id, JSON.stringify(op.propertybag, null, 4));
-                expect(op.propertybag).to.have.property('propertybag_checker');
-                expect(op.propertybag.propertybag_checker).to.be.eq(propertybag_checker);
+                dbg('propertyBag', op.id, JSON.stringify(op.propertyBag, null, 4));
+                expect(op.propertyBag).to.have.property('propertyBag_checker');
+                expect(op.propertyBag.propertyBag_checker).to.be.eq(propertyBag_checker);
                 const processor = require(op.path);
 
-                const result = await processor.process(op.config, op.propertybag);
+                const result = await processor.process(op.config, op.propertyBag);
                 
-                await coord.processed(op.tag, true, result, op.propertybag, processor_name, processor_work_id);           
+                await coord.processed(op.tag, true, result, op.propertyBag, processor_name, processor_work_id);           
 
                 op = await coord.get_work(processor_name, (++processor_work_id));
             }
 
-            expect(processor_work_id).to.be.eq(userops, 'user operations to be completed');
-            const completed = await flowman.is_flow_completed(flowid);
-            expect(completed).to.be.eq(shouldend, 'flow should or should not complete');
+            expect(processor_work_id).to.be.eq(user_operations, 'user operations to be completed');
+            const completed = await flow_manager.is_flow_completed(flow_id);
+            expect(completed).to.be.eq(should_end, 'flow should or should not complete');
 
-            const jsonflow = await flowman.get_hierarchical_flow(flowid);
+            const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
 
-            dbg('COMPLETED FLOW ', JSON.stringify(jsonflow, null, 4));
+            dbg('COMPLETED FLOW ', JSON.stringify(json_flow, null, 4));
         });
-        /*
+        
         it('should process operation using the class [' + key + ']', async () => {
 
-            const firstflow = JSON.parse(JSON.stringify(testflow)); 
-            const flowid = await flowman.save_flow(firstflow);
+            const first_flow = JSON.parse(JSON.stringify(test_flow)); 
+            const flow_id = await flow_manager.save_flow(first_flow);
             const proc = new processor(coord, {polling_interval_seconds : 'disabled'});
+            let timed_out = false;
+            const timeout = setTimeout(()=>{timed_out = true;}, 500);
 
-            while(await proc.poll()){
-                dbg('pooling');
+            while((!timed_out) && proc.idx < user_operations)
+            {
+                await proc.poll();
+                await proc.empty();
             }
 
-            const completed = await flowman.is_flow_completed(flowid);
-            expect(completed).to.be.eq(shouldend, 'flow should or should not complete');
+            if(!timed_out)
+                clearTimeout(timeout);
 
-            const jsonflow = await flowman.get_hierarchical_flow(flowid);
+            dbg('polled', proc.queue_size(), proc.idx);//, Object.keys(proc.working));//, process._getActiveHandles(), process._getActiveRequests());
 
-            dbg('COMPLETED FLOW.1 ', JSON.stringify(jsonflow, null, 4));
+            await coord.get_work(processor_name, (++processor_work_id));
+
+            const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
+
+            dbg('COMPLETED FLOW.1 ', JSON.stringify(json_flow, null, 4));
+
+            const completed = await flow_manager.is_flow_completed(flow_id);
+            
+            expect(timed_out).to.be.eq(false);
+            expect(completed).to.be.eq(should_end, 'check flow should or should not complete');
+            
+        
         });
-        */
+        
         
     }
 

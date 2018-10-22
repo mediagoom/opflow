@@ -2,11 +2,11 @@
 
 
 module.exports = {
-    process : async function(config, propertybag)
+    process : async function(config, propertyBag)
     {
         const vm = require('vm');
 
-        let result = vm.runInNewContext(config.code, {config: config, propertybag: propertybag});
+        let result = vm.runInNewContext(config.code, {config: config, propertyBag: propertyBag});
 
         return result;
 

@@ -3,7 +3,7 @@ const chai   = require('chai');
 const config = require('../config');
 const dbg    = require('debug')('opflow:storagetest');
 //const operation = require('../operation').OperationManager;
-const flow  = require('../operation').FlowManager;
+const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
 
 const storageError = require('../storage/storageError');
@@ -18,16 +18,18 @@ describe('STORAGE',  () => {
     {    
         describe(storages[idx],  () => {    
 
-            config.change_storage(storages[idx]);
+            it('should change storage', () => {
+                config.change_storage(storages[idx]);
+            });
 
             it('should support save flow', async () => {
-
-                const firstflow = JSON.parse(JSON.stringify(flows.basicflow)); 
-                const secondflow = JSON.parse(JSON.stringify(flows.simplejoin)); 
+                
+                const first_flow = JSON.parse(JSON.stringify(flows.basicFlow)); 
+                const second_flow = JSON.parse(JSON.stringify(flows.simplejoin)); 
 
                 //dbg('FLOW.1', JSON.stringify(flows, null, 4));
 
-                expect(firstflow).to.have.property('root');
+                expect(first_flow).to.have.property('root');
                     
                 //dbg('STORAGE', config.data.storage);
 
@@ -35,30 +37,34 @@ describe('STORAGE',  () => {
 
                 //dbg('EVENTS', storage.events);
                 
-                const flowman = new flow(storage);
+                const flow_manager= new flow(storage);
 
-                await flowman.save_flow(firstflow);
+                const flow_id = await flow_manager.save_flow(first_flow);
 
-                let operations = await flowman.load_operations(10);
+                const ended = await flow_manager.is_flow_completed(flow_id);
+
+                expect(ended).to.be.false;                
+
+                let operations = await flow_manager.load_operations(10);
 
                 expect(operations.length).to.be.eq(1);
                     
-                await flowman.save_flow(secondflow);
+                await flow_manager.save_flow(second_flow);
 
-                let operations1 = await flowman.load_operations(10);
+                let operations1 = await flow_manager.load_operations(10);
                 //lease time should prevent the first flow to return anything.
                 expect(operations1.length).to.be.eq(1);
                     
-                flowman.reset_operation(operations[0]);
-                flowman.reset_operation(operations1[0]);
+                flow_manager.reset_operation(operations[0]);
+                flow_manager.reset_operation(operations1[0]);
 
-                operations = await flowman.load_operations(10);
+                operations = await flow_manager.load_operations(10);
 
                 expect(operations.length).to.be.eq(2);
                     
 
-                flowman.reset_operation(operations[0]);
-                flowman.reset_operation(operations[1]);
+                flow_manager.reset_operation(operations[0]);
+                flow_manager.reset_operation(operations[1]);
 
                 return;
 
@@ -66,8 +72,8 @@ describe('STORAGE',  () => {
 
             it('should load and complete operations', async () => {
 
-                const flowman = new flow(config.storage);
-                let operations = await flowman.load_operations(10);
+                const flow_manager= new flow(config.storage);
+                let operations = await flow_manager.load_operations(10);
 
                 let complete = 0;
 
@@ -75,16 +81,16 @@ describe('STORAGE',  () => {
                 {
                     for(let idx = 0; idx < operations.length; idx++)
                     {
-                        await flowman.register_success(operations[idx], 'TEST NOT EXECUTION [' + idx.toString() + ']' );
+                        await flow_manager.register_success(operations[idx], 'TEST NOT EXECUTION [' + idx.toString() + ']' );
                         complete++;
                             
-                        const history = await flowman.get_operation_history(operations[idx]);
+                        const history = await flow_manager.get_operation_history(operations[idx]);
 
                         expect(history.length).to.be.eq(1); 
 
                     }
 
-                    operations = await flowman.load_operations(10);
+                    operations = await flow_manager.load_operations(10);
                 }
 
                 expect(complete).to.be.eq(8);
@@ -93,36 +99,37 @@ describe('STORAGE',  () => {
 
             it('should register and delay error', async () => {
 
-                const flowman = new flow(config.storage);
-                const firstflow = JSON.parse(JSON.stringify(flows.basicflow)); 
+                const flow_manager= new flow(config.storage);
+                const first_flow = JSON.parse(JSON.stringify(flows.basicFlow)); 
 
-                await flowman.save_flow(firstflow);
+                await flow_manager.save_flow(first_flow);
 
-                let operations = await flowman.load_operations(10);
-                expect(operations.length).to.be.eq(1);
+                let operations = await flow_manager.load_operations(10);
+                expect(operations.length).to.be.eq(1, 'loaded operations');
 
                 let op = operations[0];
                    
                 let j = 0;
-                await flowman.register_failure(op, 'REGISTER FAILURE ' + (j++).toString());
+                await flow_manager.register_failure(op, 'REGISTER FAILURE ' + (j++).toString());
 
-                operations = await flowman.load_operations(10);
-                expect(operations.length).to.be.eq(0, 'after failure asof should be set');
+                operations = await flow_manager.load_operations(10);
+                expect(operations.length).to.be.eq(0, 'after failure asOf should be set');
                    
                 while(null != op)
                 {
-                    await flowman.set_operation_asof(op);
+                    dbg('reset asOf', op.id);
+                    await flow_manager.set_operation_asOf(op);
 
-                    operations = await flowman.load_operations(10);
+                    operations = await flow_manager.load_operations(10);
 
                     if(0 < operations.length)
                     {
                         expect(op).to.eql(operations[0]);
-                        await flowman.register_failure(operations[0], 'REGISTER FAILURE ' + (j++).toString());
+                        await flow_manager.register_failure(operations[0], 'REGISTER FAILURE ' + (j++).toString());
                     }
                     else
                     {
-                        const history = await flowman.get_operation_history(op);
+                        const history = await flow_manager.get_operation_history(op);
                         dbg('Completed retries', JSON.stringify(history, null, 4));
                         op = null;
                     }
@@ -141,11 +148,11 @@ describe('STORAGE',  () => {
 
                     const originalflow = flows[keys[idx]];
 
-                    const firstflow = JSON.parse(JSON.stringify(originalflow));
+                    const first_flow = JSON.parse(JSON.stringify(originalflow));
 
                     const storage = config.storage;
                 
-                    const flat = storage.json_flow_to_storage_flow(firstflow);
+                    const flat = storage.json_flow_to_storage_flow(first_flow);
 
                     dbg('FLAT', JSON.stringify(flat, null, 4));
 
