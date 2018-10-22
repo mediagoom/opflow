@@ -325,21 +325,14 @@ class basestorage extends EventEmitter{
         throw new storageError(msg);
     }
 
-    flow_id(opid)
+    flow_id(operation_id)
     {
-        if(undefined === opid)
+        if(undefined === operation_id)
         {
-            throw new storageError('undefined opid to flow_id');
+            throw new storageError('undefined operation_id to flow_id');
         }
 
-        /*
-        if('string' !== (typeof opid))
-        {
-            throw new storageError('invalid opid type ' + (typeof opid));
-        }
-        */
-
-        return opid.toString().split('/')[0];
+        return operation_id.toString().split('/')[0];
     }
 
     /*
@@ -396,20 +389,29 @@ class basestorage extends EventEmitter{
             , 'joins' : joins} , obj);
     
     }
+    /** From an operations array rebuild all other storage objects
+     * @param {object} operations array
+     * @returns {object} a json flow object
+     */
+    storage_operations_to_storage_flow(operations)
+    {
+        const joins = operations.filter( el => {return 'JOIN' === el.type;});
+        const obj = index_opsparent_and_joins(operations, joins); 
 
+        const flow = Object.assign({}, {'operations' : operations
+            , 'joins' : joins} , obj);
+
+        return flow;
+    }
     /** recreate a flow hierarchy from an array of operations
      * @param {object} operations array
      * @returns {object} a json flow object
     */ 
     storage_flow_to_json_flow(operations)
     {
-        const joins = operations.filter( el => {return 'JOIN' === el.type;});
-        const obj = index_opsparent_and_joins(operations, joins); 
-
         const root = operations.find( el => {return 'START' === el.type;});
 
-        const flow = Object.assign({}, {'operations' : operations
-            , 'joins' : joins} , obj);
+        const flow = this.storage_operations_to_storage_flow(operations);
             
         construct_json_branch(root, flow);
 

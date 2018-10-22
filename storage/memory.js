@@ -1,24 +1,6 @@
 const basestorage = require('./basestorage');
 const dbg    = require('debug')('opflow:memorystorage');
 
-/*
-const dbg    = require('debug')('opflow:memorystorage');
-
-/  * global performance *  /
-
-function generateUUID() { // Public Domain/MIT
-    
-    var d = new Date().getTime();
-    if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
-        d += performance.now(); //use high-precision timer if available
-    }
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (d + Math.random() * 16) % 16 | 0;
-        d = Math.floor(d / 16);
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-}
-*/
 
 function operation_is_runnable(element)
 {
@@ -56,25 +38,25 @@ function operation_is_runnable(element)
 
 async function operation_has_parent_completed(op, flow, mem)
 {
-    let processop = false;
-    const parentid = flow.parents[op.id];
+    let process_operation = false;
+    const parent_id = flow.parents[op.id];
                 
     if(
         'START' == op.type
-                    && (undefined === parentid) 
+                    && (undefined === parent_id) 
     )
-        processop = true;
+        process_operation = true;
     else
     {
-        //is our parent compleated
-        const opdep = await mem.get_operation(parentid);
-        if(true === opdep.completed && true === opdep.succeeded)
+        //is our parent completed
+        const operation_dependency = await mem.get_operation(parent_id);
+        if(true === operation_dependency.completed && true === operation_dependency.succeeded)
         {
-            processop = true;
+            process_operation = true;
         }
     }
 
-    return processop;
+    return process_operation;
 }
 
 
@@ -85,19 +67,47 @@ module.exports = class memorystorage extends basestorage  {
         super(typemap);
         this.flows = {};
     }
-    
-    async save_flow(flow)
-    {
-        const storageflow = this.json_flow_to_storage_flow(flow);
-        this.flows[storageflow.flow.id] = storageflow;
-
-        return storageflow.flow.id;
-    }
-
+   
     async reset()
     {
         this.flows = {};
     }
+
+    async flow_changed(flow, ended)
+    {
+        dbg('flow changed', flow.flow.id, ended);
+    }
+
+    async discard_flow(flow_id)
+    {
+        delete this.flows[flow_id];
+    }
+
+    async flow_ended(operation_id)
+    {
+        const flow = this.flow_id(operation_id);
+        dbg('flow ended', this.flows[flow].flow.id);
+
+        return this.flow_changed(this.flows[flow], true);
+    }
+
+    async operation_changed(operation_id)
+    {
+        const flow = this.flow_id(operation_id);
+        await this.flow_changed(this.flows[flow]);
+    }
+    
+    async save_flow(flow)
+    {
+        const storage_flow = this.json_flow_to_storage_flow(flow);
+        this.flows[storage_flow.flow.id] = storage_flow;
+
+        await this.flow_changed(this.flows[storage_flow.flow.id]);
+
+        return storage_flow.flow.id;
+    }
+
+    
 
     async lease_operations(operations)
     {           
@@ -113,14 +123,17 @@ module.exports = class memorystorage extends basestorage  {
             element.lease_time = time;
 
             dbg('leasing op:', element.name, element.id, element.lease_time, type.lease, element.type);
+           
+            await this.operation_changed(element.id);
+            
         }
         
         return operations;
     }
 
-    async is_flow_completed(flownid)
+    async is_flow_completed(flow_id)
     {
-        const flow = this.flows[flownid];
+        const flow = this.flows[flow_id];
 
         if(undefined === flow)
         {
@@ -160,9 +173,9 @@ module.exports = class memorystorage extends basestorage  {
 
             if(undefined === join) //we are not the son of a join
             {
-                let processop = await operation_has_parent_completed(op, flow, this);                
+                let process_operation = await operation_has_parent_completed(op, flow, this);                
 
-                if(processop)
+                if(process_operation)
                 {
                     dbg('found op to run: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
                     operations.push(op);
@@ -176,19 +189,19 @@ module.exports = class memorystorage extends basestorage  {
 
                 for(let idx = 0; idx < join.length; idx++)
                 {   
-                    const opdep = await this.get_operation(join[idx]);
-                    if(!opdep.completed)
+                    const operation_dependency = await this.get_operation(join[idx]);
+                    if(!operation_dependency.completed)
                     {
                         all_completed = false;
-                        if(operation_is_runnable(opdep))
+                        if(operation_is_runnable(operation_dependency))
                         {
 
-                            let processop = await operation_has_parent_completed(opdep, flow, this);                
+                            let process_operation = await operation_has_parent_completed(operation_dependency, flow, this);                
                             
-                            if(processop)
+                            if(process_operation)
                             {
-                                dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, opdep, {children : null}), null, 4));
-                                operations.push(opdep);
+                                dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, operation_dependency, {children : null}), null, 4));
+                                operations.push(operation_dependency);
                                 if(operations.length >= no_more)
                                     return await this.lease_operations(operations);
                             }
@@ -239,6 +252,13 @@ module.exports = class memorystorage extends basestorage  {
         op.modified = new Date();
 
         operation.lease_time = null;
+
+        await this.operation_changed(operation.id);
+
+        if('END' === operation.type && op.succeeded)
+        {
+            await this.flow_ended(operation.id)
+        }
     }
 
     async get_operation_history(operation)
@@ -255,6 +275,8 @@ module.exports = class memorystorage extends basestorage  {
     async set_operation_asOf(operation, asOf)
     {
         operation.asOf = asOf;
+
+        return this.operation_changed(operation.id);
     }
 
     async add_history(operation, message, success)
@@ -270,6 +292,7 @@ module.exports = class memorystorage extends basestorage  {
             }
         );
 
+        return this.operation_changed(operation.id);
         
     }
 
@@ -280,6 +303,8 @@ module.exports = class memorystorage extends basestorage  {
         op.executed  = false;
         op.lease_time = undefined;
         op.modified = new Date();
+
+        return this.operation_changed(op.id);
     }
 
     async get_parent(operation)

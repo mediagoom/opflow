@@ -35,7 +35,7 @@ describe('MISSING', () => {
         it('should not evaluate invalid id', () => {
             const storage = config.storage;
 
-            expect(() => {storage.flow_id(undefined);} ).to.throw('undefined opid to flow_id');
+            expect(() => {storage.flow_id(undefined);} ).to.throw('undefined operation_id to flow_id');
         });
 
         it('should export and raise event', () => {

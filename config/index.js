@@ -1,4 +1,5 @@
 const defaults = require('./default.js');
+const Path = require('path');
 const dbg = require('debug')('opflow:configuration');
 let   _config  = require('./' + (process.env.NODE_ENV || 'development') + '.js');
 
@@ -21,7 +22,8 @@ class Config
         {
             dbg('loading storage', this.data.storage);
             const storageClass = require(this.data.storage);
-            this._storage = new storageClass(require(this.data.typemap));        
+            this._storage = new storageClass(require(this.data.typemap));    
+            this._storage.reset();    
         }
              
         return this._storage;
@@ -45,6 +47,11 @@ class Config
         this.storage.reset();
 
         return this.storage;
+    }
+
+    get disk_storage_path()
+    {
+        return Path.join(__dirname, this.data.disk_storage_path);
     }
 }
 
