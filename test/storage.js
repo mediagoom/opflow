@@ -13,7 +13,7 @@ const expect = chai.expect;
 describe('STORAGE',  () => {
 
     const storages = ['../storage/memory'
-       // , '../storage/disk'
+        //, '../storage/disk'
     ];
 
     for(let idx = 0; idx < storages.length; idx++)
