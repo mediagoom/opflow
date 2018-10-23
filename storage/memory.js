@@ -98,9 +98,11 @@ module.exports = class memorystorage extends basestorage  {
     }
     
     async save_flow(flow)
-    {
+    {        
         const storage_flow = this.json_flow_to_storage_flow(flow);
         this.flows[storage_flow.flow.id] = storage_flow;
+        
+        dbg('save flow', storage_flow.flow.id);
 
         await this.flow_changed(this.flows[storage_flow.flow.id]);
 
@@ -137,7 +139,7 @@ module.exports = class memorystorage extends basestorage  {
 
         if(undefined === flow)
         {
-            basestorage.throw_storage_error('invalid flow name');
+            basestorage.throw_storage_error('invalid flow name ' + flow_id);
         }
 
         const op = flow.operations.find( el => {return !el.completed;});
@@ -326,6 +328,9 @@ module.exports = class memorystorage extends basestorage  {
     {
         const flow = this.flows[flow_id];
 
+        if(undefined === flow)
+            return undefined;
+
         return this.storage_flow_to_json_flow(flow.operations);
     }
 
@@ -333,6 +338,27 @@ module.exports = class memorystorage extends basestorage  {
     {
         const flow = this.flows[flow_id];
         return flow.operations;
+    }
+
+    async get_active_flows(no_more, options)
+    {
+        dbg('get_active_flows', options);
+
+        let keys = Object.keys(this.flows);
+
+        const ids = [];
+        
+        for(let k = 0; k < keys.length; k++)
+        {
+            const flow = this.flows[keys[k]];
+
+            ids.push(flow.flow.id);
+            
+            if(ids.length >= no_more)
+                return ids;
+        }
+
+        return ids;
     }
    
 };

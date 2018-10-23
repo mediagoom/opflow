@@ -13,15 +13,15 @@ const expect = chai.expect;
 describe('STORAGE',  () => {
 
     const storages = ['../storage/memory'
-        //, '../storage/disk'
+        , '../storage/disk'
     ];
 
     for(let idx = 0; idx < storages.length; idx++)
     {    
         describe(storages[idx],  () => {    
 
-            it('should change storage', () => {
-                config.change_storage(storages[idx]);
+            it('should change storage', async () => {
+                await config.change_storage(storages[idx]);
             });
 
             it('should support save flow', async () => {
@@ -74,8 +74,9 @@ describe('STORAGE',  () => {
 
             it('should load and complete operations', async () => {
 
+                const operations_batch = 2;
                 const flow_manager= new flow(config.storage);
-                let operations = await flow_manager.load_operations(10);
+                let operations = await flow_manager.load_operations(operations_batch);
 
                 let complete = 0;
 
@@ -92,7 +93,7 @@ describe('STORAGE',  () => {
 
                     }
 
-                    operations = await flow_manager.load_operations(10);
+                    operations = await flow_manager.load_operations(operations_batch);
                 }
 
                 expect(complete).to.be.eq(8);

@@ -38,13 +38,13 @@ class Config
      * Allow to change the storage.
      * @param {string} storagePath the require path to the new storage.
      */
-    change_storage(storagePath)
+    async change_storage(storagePath)
     {
         dbg('change storage', storagePath);
         this.data.storage = storagePath;
         this._storage = null;
 
-        this.storage.reset();
+        await this.storage.reset();
 
         return this.storage;
     }

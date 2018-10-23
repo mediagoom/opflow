@@ -34,7 +34,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
-            "args": ["-d", "./test/**/*.js", "-g", "disk"],
+            "args": ["-d", "./test/**/*.js", "-g", "DISK"],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": null,
             

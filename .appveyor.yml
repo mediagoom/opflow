@@ -1,4 +1,9 @@
-﻿install:
+﻿
+image: 
+  - Visual Studio 2017
+  - Ubuntu
+  
+install:
   - npm install
 
 build: off

@@ -81,7 +81,7 @@ module.exports = class diskStorage extends memory  {
     {
         const source = this.file_path(flow_id);
 
-        move_file(
+        return move_file(
             Path.join(this.path, source)
             , Path.join(this.complete_path, source)
         );
@@ -91,12 +91,14 @@ module.exports = class diskStorage extends memory  {
     {
         const source = this.file_path(flow_id);
         try{
+
             const stat = await Stat(Path.join(this.complete_path, source));
             if(stat.isFile())
                 return true;
+          
         }catch(err)
         {
-            dbg('file not exist %j', err); 
+            dbg('is_flow_completed %j', err); 
         }
 
         return super.is_flow_completed(flow_id);
@@ -106,35 +108,46 @@ module.exports = class diskStorage extends memory  {
     {
         dbg('flow changed', flow.flow.id, ended);
 
-        await this.disk_save_flow(flow);
-        if(ended)
+        try{
+
+            await this.disk_save_flow(flow);
+            if(ended)
+            {
+                await this.complete_flow(flow.flow.id);
+                await super.discard_flow(flow.flow.id);
+            }
+
+        }catch(err)
         {
-            await this.complete_flow(flow.flow.id);
-            await super.discard_flow(flow.flow.id);
+            dbg('flow changed error %j', err);
+            throw err;
         }
+
     }
 
     async reset(hard)
     {
+        await super.reset();
+
         await directory_exist_or_create(this.path);
         await directory_exist_or_create(this.complete_path);
         await directory_exist_or_create(this.suspended_path);
 
-        const working = get_files(this.path);
+        const working = await get_files(this.path);
         
 
         for(let idx = 0; idx < working.length; idx++)
         {
             if(true === hard)
             {                
-                move_file(
+                await move_file(
                     Path.join(this.path, working[idx])
                     , Path.join(this.suspended_path, working[idx])
                 );
                 
             }else
             {
-                const json = ReadFile(Path.join(this.path, working[idx]));
+                const json = await ReadFile(Path.join(this.path, working[idx]));
                 const flow_id = this.flow_id_from_path(working[idx]);
 
                 const operations = JSON.parse(json);
@@ -143,12 +156,10 @@ module.exports = class diskStorage extends memory  {
 
                 flow.flow = {id : flow_id};
 
-                super.flows.push(flow);
+                this.flows[flow_id] = flow;
                 
             }
         }
      
-
-        return super.reset();
     }
 };

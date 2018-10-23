@@ -105,6 +105,25 @@ class flow_manager
     {
         return this.storage.get_parent(operation);
     }
+    /** Return an array of active flow_id
+     * 
+     * @param {*} no_more 
+     * @param {*} options 
+     */
+    async get_active_flows(no_more, options)
+    {
+        if(undefined === no_more)
+        {
+            no_more = 10;
+        }
+
+        if(undefined === options)
+        {
+            options = {};
+        }
+
+        return this.storage.get_active_flows(no_more, options);
+    }
 
     async get_hierarchical_flow(flow_id)
     {

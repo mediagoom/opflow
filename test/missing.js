@@ -117,9 +117,9 @@ describe('MISSING', () => {
             
             const storage_name = '../storage/memory';
 
-            const storage = config.change_storage(storage_name);
+            const storage = await config.change_storage(storage_name);
 
-            const err = 'invalid flow name';
+            const err = 'invalid flow name invalid_name';
             let msg = 'x';
 
             try{
@@ -137,7 +137,7 @@ describe('MISSING', () => {
             
             const storage_name = '../storage/memory';
 
-            const storage = config.change_storage(storage_name);
+            const storage = await config.change_storage(storage_name);
 
             const err = 'undefined operation_id to get_operations';
             let msg = 'x';
@@ -157,7 +157,7 @@ describe('MISSING', () => {
             
             const storage_name = '../storage/memory';
 
-            const storage = config.change_storage(storage_name);
+            const storage = await config.change_storage(storage_name);
             const flow_manager= new flow(storage);
 
             const first_flow = JSON.parse(JSON.stringify(flows.basicFlow)); 
