@@ -124,7 +124,7 @@ module.exports = class memorystorage extends basestorage  {
 
             element.lease_time = time;
 
-            dbg('leasing op:', element.name, element.id, element.lease_time, type.lease, element.type);
+            dbg('leasing op [%s] %s %s %d %s', element.name, element.id, element.lease_time, type.lease, element.type);
            
             await this.operation_changed(element.id);
             
@@ -243,12 +243,13 @@ module.exports = class memorystorage extends basestorage  {
 
     async complete_operation(operation, success)
     {
+        dbg('COMPLETING [%s] %s', operation.name, operation.id);
+
         const op = await this.get_operation(operation.id);
-        
         if(op.completed)
             basestorage.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
 
-        dbg('COMPLETED', op.name, op.type, op.id);
+        dbg('COMPLETED [%s] %s -> %s', op.name, op.type, op.id);
         op.succeeded = success;
         op.completed = true;
         op.modified = new Date();

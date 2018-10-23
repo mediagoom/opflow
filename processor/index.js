@@ -36,6 +36,7 @@ class ProcessorBox {
         this.result = null;
         this.succeeded = false;
         this.idx = idx;
+        
         this.completed_promise = null;
 
         this.promise.then(result => {
@@ -64,6 +65,7 @@ module.exports = class Processor extends EventEmitter{
         this.interval = null;
         this.running = {};
         this.idx = 0;
+        this.completed_count = 0;
 
         if(!isNaN(this.configuration.polling_interval_seconds))
         {
@@ -100,6 +102,8 @@ module.exports = class Processor extends EventEmitter{
         await this.poll();
 
         delete this.running[tag];
+
+        this.completed_count++;
     }
 
     queue_size()

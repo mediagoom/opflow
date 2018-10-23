@@ -97,9 +97,9 @@ describe('PROCESSOR', () => {
             const flow_id = await flow_manager.save_flow(first_flow);
             const proc = new processor(coord, {polling_interval_seconds : 'disabled'});
             let timed_out = false;
-            const timeout = setTimeout(()=>{timed_out = true;}, 500);
+            const timeout = setTimeout(()=>{timed_out = true;}, 1500);
 
-            while((!timed_out) && proc.idx < user_operations)
+            while((!timed_out) && proc.completed_count < user_operations)
             {
                 await proc.poll();
                 await proc.empty();
@@ -118,7 +118,7 @@ describe('PROCESSOR', () => {
 
             const completed = await flow_manager.is_flow_completed(flow_id);
             
-            expect(timed_out).to.be.eq(false);
+            expect(timed_out).to.be.eq(false, 'the operation timed out');
             expect(completed).to.be.eq(should_end, 'check flow should or should not complete');
             
         

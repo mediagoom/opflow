@@ -9,8 +9,9 @@ install:
 build: off
 
 test_script:
-  - npm run eslint
-  - ./node_modules/.bin/nyc npm test
+  - cmd: npm run eslint
+  - cmd: ./node_modules/.bin/nyc npm test
+  - sh: npm test
 
 cache:
 #- node_modules -> package.json

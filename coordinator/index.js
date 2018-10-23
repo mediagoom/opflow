@@ -69,6 +69,32 @@ async function load_and_process_system(op_to_do, flow, batch)
             {
                 operation_parent = await flow.get_operation(operation_parent);
                 op.propertyBag = operation_parent.propertyBag;
+
+                op.propertyBag.parent_result = operation_parent.result;
+                
+                let keys = Object.keys(op.propertyBag).filter( k => { return k.startsWith('config_'); });
+                
+                if(undefined !== op.config && null !== op.config)
+                {                
+                    for(let idx = 0 ; idx < keys.length; idx++)
+                    {
+                        const k = keys[idx];
+                        const key = k.replace('config_', '');
+
+                        dbg('config key replace %j', op.config, key, k);
+
+                        const val = op.config[key]; 
+                    
+                        if(val !== undefined)
+                        {                            
+                            const original = val;
+                            op.config[key] = op.propertyBag[k];
+                            op.propertyBag['original_' + key] = original;
+                            
+                        }
+                    
+                    }
+                }
             }
         }
         else

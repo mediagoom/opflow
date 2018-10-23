@@ -69,7 +69,7 @@ class flow_manager
         operation.result = message;
         
         await this.storage.add_history(operation, message, true);
-        return this.storage.complete_operation(operation, true);
+        await this.storage.complete_operation(operation, true);
     }
 
     async reset_operation(operation)
