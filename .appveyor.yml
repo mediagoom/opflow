@@ -15,6 +15,7 @@ stack: node 8
 
 install:
   - npm install
+  - npm install --only=dev
   - npm install mocha-appveyor-reporter coveralls
 
 build: off
