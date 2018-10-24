@@ -17,7 +17,7 @@ function Wait(ms)
 describe('WIRE', () => {
 
     after(() => {config.storage = null;});
-/*
+    /*
     it('should start, run and then stop X', (done) => {
          
         const test_flow = JSON.parse(JSON.stringify(flows.simpleEcho));
