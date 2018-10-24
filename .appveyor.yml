@@ -12,12 +12,13 @@ stack: node 8
 
 install:
   - npm install
+  - npm install mocha-appveyor-reporter
 
 build: off
 
 test_script:
   - npm run eslint
-  - ./node_modules/.bin/nyc npm test
+  - ./node_modules/.bin/nyc npm test -- --reporter mocha-appveyor-reporter
 
 
 cache:
