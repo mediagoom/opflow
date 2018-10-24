@@ -23,7 +23,7 @@ class Config
             dbg('loading storage', this.data.storage);
             const storageClass = require(this.data.storage);
             this._storage = new storageClass(require(this.data.typemap));    
-            this._storage.reset();    
+            this._storage.init();    
         }
              
         return this._storage;

@@ -6,4 +6,5 @@
         , "coverage/": true
         , "*.lcov" : true
     }
+    , "vim.useCtrlKeys" : false
 }

@@ -58,6 +58,7 @@ async function load_and_process_system(op_to_do, flow, batch)
         {
             if(Array.isArray(operation_parent))
             {
+                /* istanbul ignore if */
                 if('JOIN' !== op.type)
                 {
                     throw new coordinatorError('Parent array for not join ' + op.id);
@@ -69,36 +70,46 @@ async function load_and_process_system(op_to_do, flow, batch)
             {
                 operation_parent = await flow.get_operation(operation_parent);
                 op.propertyBag = operation_parent.propertyBag;
+                op.propertyBag.parent = {};
+                op.propertyBag.original = {};
+                op.propertyBag.parent.result = operation_parent.result;
+                op.propertyBag.parent.succeeded = operation_parent.succeeded;
 
-                op.propertyBag.parent_result = operation_parent.result;
+                if(undefined !== op.propertyBag.config)
+                {
                 
-                let keys = Object.keys(op.propertyBag).filter( k => { return k.startsWith('config_'); });
+                    let keys = Object.keys(op.propertyBag.config);
                 
-                if(undefined !== op.config && null !== op.config)
-                {                
-                    for(let idx = 0 ; idx < keys.length; idx++)
-                    {
-                        const k = keys[idx];
-                        const key = k.replace('config_', '');
-
-                        dbg('config key replace %j', op.config, key, k);
-
-                        const val = op.config[key]; 
-                    
-                        if(val !== undefined)
-                        {                            
-                            const original = val;
-                            op.config[key] = op.propertyBag[k];
-                            op.propertyBag['original_' + key] = original;
+                    if(undefined !== op.config && null !== op.config)
+                    {                
+                        for(let idx = 0 ; idx < keys.length; idx++)
+                        {
+                            const key = keys[idx];
                             
-                        }
+                            dbg('config key replace %j', op.config, key);
+
+                            const val = op.config[key]; 
                     
+                            if(val !== undefined)
+                            {                            
+                                const original = val;
+                                op.config[key] = op.propertyBag.config[key];
+                                op.propertyBag.original[key] = original;
+                            
+                            }
+                    
+                        }
                     }
+                }
+                else
+                {
+                    op.propertyBag.config = {};
                 }
             }
         }
         else
         {
+            /* istanbul ignore if */
             if('START' !== op.type)
             {
                 throw new coordinatorError('Missing Parent for not a START ' + op.id); 

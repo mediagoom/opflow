@@ -37,6 +37,29 @@ async function get_files(path)
     return result;
 }
 
+function get_files_sync(path)
+{
+    const result = [];
+    
+    try{
+        const items = fs.readdirSync(path);
+   
+        for(let idx = 0; idx < items.length; idx++)
+        {
+            const stat = fs.statSync(Path.join(path, items[idx]));
+            if(stat.isFile())
+                result.push(items[idx]);
+        }
+    }
+    catch(e)
+    {
+        dbg('get_files_sync %j', e);
+    }
+
+    return result;
+}
+
+
 async function move_file(source_path, destination_path)
 {
     try{
@@ -125,41 +148,153 @@ module.exports = class diskStorage extends memory  {
 
     }
 
+    async suspend_files()
+    {
+        const working = await get_files(this.path);
+        
+        for(let idx = 0; idx < working.length; idx++)
+        {            
+            await move_file(
+                Path.join(this.path, working[idx])
+                , Path.join(this.suspended_path, working[idx])
+            );
+        }
+                
+    }
+    
+    async load_storage_flow_from_file(flow_id, path)
+    {
+        if(undefined === path)
+            path = this.path;
+
+        const json = await ReadFile(Path.join(path, this.file_path(flow_id)));
+       
+        const operations = JSON.parse(json);
+
+        return operations;
+    }
+
+    async load_flow_from_file(flow_id, path)
+    {
+        const operations = await this.load_storage_flow_from_file(flow_id, path);
+        const flow = this.storage_operations_to_storage_flow(operations);
+
+        flow.flow = {id : flow_id};
+
+        return flow;
+    }
+
+    load_flow_from_file_sync(flow_id, path)
+    {
+        if(undefined === path)
+            path = this.path;
+
+        const json = fs.readFileSync(Path.join(path, this.file_path(flow_id)));
+       
+        const operations = JSON.parse(json);
+
+        const flow = this.storage_operations_to_storage_flow(operations);
+
+        flow.flow = {id : flow_id};
+
+        return flow;
+    }
+
+    init()
+    {
+        super.init();
+
+        const working = get_files_sync(this.path);
+
+        for(let idx = 0; idx < working.length; idx++)
+        {
+            const flow_id = this.flow_id_from_path(working[idx]);
+
+            const flow = this.load_flow_from_file_sync(flow_id);
+
+            this.flows[flow_id] = flow;
+            
+        }
+    }
+
     async reset(hard)
     {
         await super.reset();
+
+        const cleanup = (hard)?true:false;
 
         await directory_exist_or_create(this.path);
         await directory_exist_or_create(this.complete_path);
         await directory_exist_or_create(this.suspended_path);
 
+        if(cleanup)
+            await this.suspend_files();
+
         const working = await get_files(this.path);
         
-
         for(let idx = 0; idx < working.length; idx++)
         {
-            if(true === hard)
-            {                
-                await move_file(
-                    Path.join(this.path, working[idx])
-                    , Path.join(this.suspended_path, working[idx])
-                );
-                
-            }else
-            {
-                const json = await ReadFile(Path.join(this.path, working[idx]));
-                const flow_id = this.flow_id_from_path(working[idx]);
+            const flow_id = this.flow_id_from_path(working[idx]);
 
-                const operations = JSON.parse(json);
+            const flow = await this.load_flow_from_file(flow_id);
 
-                const flow = this.storage_operations_to_storage_flow(operations);
-
-                flow.flow = {id : flow_id};
-
-                this.flows[flow_id] = flow;
-                
-            }
+            this.flows[flow_id] = flow;
+            
         }
-     
     }
+
+    async get_storage_flow(flow_id)
+    {
+        let operations = await super.get_storage_flow(flow_id);
+        
+        if(undefined === operations)
+        {
+            const source = this.file_path(flow_id);
+            try{
+
+                const stat = await Stat(Path.join(this.complete_path, source));
+                if(stat.isFile())
+                {
+                    operations = await this.load_storage_flow_from_file(flow_id, this.complete_path);
+                }
+            
+            }catch(err)
+            {
+                dbg('get_storage_flow %j', err); 
+            }
+
+        }
+
+        if(undefined === operations)
+        {
+            const source = this.file_path(flow_id);
+            try{
+
+                const stat = await Stat(Path.join(this.suspend_files, source));
+                if(stat.isFile())
+                {
+                    operations = await this.load_storage_flow_from_file(flow_id, this.suspend_files);
+                }
+            
+            }catch(err)
+            {
+                dbg('get_storage_flow [suspended] %j', err); 
+            }
+
+        }
+
+        return operations;
+    }
+
+    async get_hierarchical_flow(flow_id)
+    {
+        const operations = await this.get_storage_flow(flow_id);
+
+        if(undefined === operations)
+            return undefined;
+
+        return this.storage_flow_to_json_flow(operations);
+    }
+     
+    
 };

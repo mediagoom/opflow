@@ -43,13 +43,13 @@ class ProcessorBox {
             this.succeeded = this.completed = true; 
             this.result = result;
 
-            this.completed_promise = processor.completed(operation.tag); // eslint-disable-line no-unused-vars
+            this.completed_promise = processor.completed(operation.tag); 
         }
         ).catch( err => {
             this.completed = true;
             this.result = this.err = err;
             
-            this.completed_promise = processor.completed(operation.tag); // eslint-disable-line no-unused-vars
+            this.completed_promise = processor.completed(operation.tag); 
         });
     }
 }
@@ -67,6 +67,7 @@ module.exports = class Processor extends EventEmitter{
         this.idx = 0;
         this.completed_count = 0;
 
+        /* istanbul ignore if */
         if(!isNaN(this.configuration.polling_interval_seconds))
         {
             this.interval = setInterval(() => {
@@ -82,7 +83,7 @@ module.exports = class Processor extends EventEmitter{
     async completed(tag)
     {
         const box = this.running[tag];
-        
+        /* istanbul ignore if */ 
         if(!box.completed)
         {
             throw new Error('Invalid Completed tag ' + tag);

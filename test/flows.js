@@ -100,8 +100,8 @@ const basicCode = {
                 , config: {
                     code: ` propertyBag.pippo = 'pippo'; 
                             propertyBag.pluto = '12345';
-                            propertyBag.config_message = 'i am your parent';
-                            propertyBag.config_doNotExist = 'i do not exist';
+                            propertyBag.config.message = 'i am your parent';
+                            propertyBag.config.doNotExist = 'i do not exist';
                             'i am your parent result';
 
                     `
@@ -113,6 +113,10 @@ const basicCode = {
                         , config: {
                             code: ` propertyBag.pippo1 = propertyBag.pippo + propertyBag.pluto;
                             propertyBag.pippo = 'pippo1';
+                            if('i am your parent' !== config.message)
+                                throw 'invalid config.message';
+                            if('i am your parent result' !== propertyBag.parent.result)
+                                throw 'invalid propertyBag.parent.result';
                             config.message;
                             `
                             , message : 'configuration_message'

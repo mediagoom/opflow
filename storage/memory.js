@@ -67,10 +67,12 @@ module.exports = class memorystorage extends basestorage  {
         super(typemap);
         this.flows = {};
     }
+
+    init(){this.flows = {};}
    
     async reset()
     {
-        this.flows = {};
+        this.init();
     }
 
     async flow_changed(flow, ended)
@@ -260,7 +262,7 @@ module.exports = class memorystorage extends basestorage  {
 
         if('END' === operation.type && op.succeeded)
         {
-            await this.flow_ended(operation.id)
+            await this.flow_ended(operation.id);
         }
     }
 
@@ -338,6 +340,10 @@ module.exports = class memorystorage extends basestorage  {
     async get_storage_flow(flow_id)
     {
         const flow = this.flows[flow_id];
+        
+        if(undefined === flow)
+            return undefined;
+
         return flow.operations;
     }
 

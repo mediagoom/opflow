@@ -41,7 +41,7 @@ describe('DISK', () => {
    
     });
 
-    it('should save and not reload', async () => {
+    it('memory should save and not reload', async () => {
         
         await config.change_storage(disk_path_memory);
 

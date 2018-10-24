@@ -17,7 +17,7 @@ process.on('unhandledRejection', (reason, p) => {
 
 describe('PROCESSOR', () => {
         
-    config.storage.reset();
+    
 
     console.log('PROCESSOR TEST', process.env.DEBUG);
 
@@ -57,6 +57,9 @@ describe('PROCESSOR', () => {
 
         it('should process operation and forward propertyBag [' + key + ']', async () => {
             
+            const storage = config.storage;
+            await storage.reset(true);
+
             const first_flow = JSON.parse(JSON.stringify(test_flow)); 
             const flow_id = await flow_manager.save_flow(first_flow);
             
@@ -66,29 +69,46 @@ describe('PROCESSOR', () => {
             if(null != op){
                 expect(op.propertyBag).to.not.have.property('propertyBag_checker');
                 op.propertyBag.propertyBag_checker = propertyBag_checker;
+
+                expect(op).to.have.property('tag');
             }
+
+            
 
             while(null != op)
             {
-                dbg('propertyBag', op.id, JSON.stringify(op.propertyBag, null, 4));
+                dbg('propertyBag', op.tag, JSON.stringify(op.propertyBag, null, 4));
                 expect(op.propertyBag).to.have.property('propertyBag_checker');
                 expect(op.propertyBag.propertyBag_checker).to.be.eq(propertyBag_checker);
                 const processor = require(op.path);
 
-                const result = await processor.process(op.config, op.propertyBag);
+                let succeeded = false;
+                let result = null;
+                try{
+                    result = await processor.process(op.config, op.propertyBag);
+                    succeeded = true;
+                }
+                catch (err){
+                    result = err;
+                    dbg('Operation Failed %s %j', op.tag, result.message);
+                }
                 
-                await coord.processed(op.tag, true, result, op.propertyBag, processor_name, processor_work_id);           
+                await coord.processed(op.tag, succeeded, result, op.propertyBag, processor_name, processor_work_id);           
 
                 op = await coord.get_work(processor_name, (++processor_work_id));
             }
+
+            const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
+
+            expect(json_flow).not.to.be.undefined;
+
+            dbg('COMPLETED FLOW ', JSON.stringify(json_flow, null, 4));
 
             expect(processor_work_id).to.be.eq(user_operations, 'user operations to be completed');
             const completed = await flow_manager.is_flow_completed(flow_id);
             expect(completed).to.be.eq(should_end, 'flow should or should not complete');
 
-            const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
 
-            dbg('COMPLETED FLOW ', JSON.stringify(json_flow, null, 4));
         });
         
         it('should process operation using the class [' + key + ']', async () => {
@@ -97,16 +117,22 @@ describe('PROCESSOR', () => {
             const flow_id = await flow_manager.save_flow(first_flow);
             const proc = new processor(coord, {polling_interval_seconds : 'disabled'});
             let timed_out = false;
-            const timeout = setTimeout(()=>{timed_out = true;}, 1500);
+            const start = new Date();
+            
 
             while((!timed_out) && proc.completed_count < user_operations)
             {
                 await proc.poll();
                 await proc.empty();
+
+                const time = new Date();
+                if(500 < (time.getTime() - start.getTime()))
+                {
+                    timed_out = true;
+                }
             }
 
-            if(!timed_out)
-                clearTimeout(timeout);
+            
 
             dbg('polled', proc.queue_size(), proc.idx);//, Object.keys(proc.working));//, process._getActiveHandles(), process._getActiveRequests());
 

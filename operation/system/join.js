@@ -9,6 +9,7 @@ module.exports =
     {
         let operation_parent = await flow.get_parent(operation);
 
+        /* istanbul ignore if */
         if(!Array.isArray(operation_parent))
         {
             throw new Error('JOIN OPERATION WITHOUT A PARENT ARRAY');
