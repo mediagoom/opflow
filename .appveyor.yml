@@ -3,6 +3,11 @@ image:
   - Visual Studio 2017
   - Ubuntu
 
+environment:
+  matrix:
+    - NODE_ENV": development
+    - NODE_ENV": production
+
 stack: node 8
 
 install:
@@ -11,9 +16,9 @@ install:
 build: off
 
 test_script:
-  - cmd: npm run eslint
-  - cmd: ./node_modules/.bin/nyc npm test
-  - sh: npm test
+  - npm run eslint
+  - ./node_modules/.bin/nyc npm test
+
 
 cache:
 - node_modules -> package.json
