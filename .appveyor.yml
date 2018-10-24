@@ -3,6 +3,8 @@ image:
   - Visual Studio 2017
   - Ubuntu
 
+stack: node 8
+
 install:
   - npm install
 
@@ -14,4 +16,4 @@ test_script:
   - sh: npm test
 
 cache:
-#- node_modules -> package.json
+- node_modules -> package.json
