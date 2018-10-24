@@ -4,11 +4,10 @@ image:
   - Ubuntu
 
 environment:
-    - COVERALLS_SERVICE_NAME: appveyor
-    - COVERALLS_REPO_TOKEN:
+    COVERALLS_SERVICE_NAME: appveyor
+    COVERALLS_REPO_TOKEN:
         secure: ZYdATrcqk4WYd2UPNvdhUdDNKIvFdodts9+F2gnAhVomCbp4G5pWCGQZSVw/Kutc
-
-  matrix:
+    matrix:
     - NODE_ENV: development
     - NODE_ENV: production
 
