@@ -15,7 +15,7 @@ const basicFlow = {
     }
 };
 
-const simplejoin = {
+const simpleJoin = {
     root: {
         type : 'START'
         , name : 'ROOT'
@@ -25,7 +25,7 @@ const simplejoin = {
                 , name: 'FIRST'
                 , children:[
                     {type: 'JOIN'
-                        , name: 'SINGLEJOIN'
+                        , name: 'SingleJoin'
                         , children:[{type: 'END'}]
                     }
                 ]
@@ -34,7 +34,7 @@ const simplejoin = {
                 type: 'NULL'
                 , name: 'SECOND'
                 , children:[
-                    {type: 'JOIN', name: 'SINGLEJOIN'}
+                    {type: 'JOIN', name: 'SingleJoin'}
                 ]
             }
         ]
@@ -58,7 +58,7 @@ const simpleEcho = {
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 
                                 , children:[
                                     { type: '../operation/user/code'
@@ -80,7 +80,7 @@ const simpleEcho = {
                         , name: 'ECHO SECOND'
                         , config: 'HELLO FROM ECHO 2'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                            {type: 'JOIN', name: 'SingleJoin'}
                         ]
                     }
                 ]
@@ -98,7 +98,7 @@ const basicCode = {
                 type: 'code'
                 , name: 'root code'
                 , config: {
-                    code: ` propertyBag.pippo = 'pippo'; 
+                    code: ` propertyBag.mickey = 'mickey'; 
                             propertyBag.pluto = '12345';
                             propertyBag.config.message = 'i am your parent';
                             propertyBag.config.doNotExist = 'i do not exist';
@@ -111,8 +111,8 @@ const basicCode = {
                         type: '../operation/user/code'
                         , name: 'echo code1'
                         , config: {
-                            code: ` propertyBag.pippo1 = propertyBag.pippo + propertyBag.pluto;
-                            propertyBag.pippo = 'pippo1';
+                            code: ` propertyBag.mickey1 = propertyBag.mickey + propertyBag.pluto;
+                            propertyBag.mickey = 'mickey1';
                             if('i am your parent' !== config.message)
                                 throw 'invalid config.message';
                             if('i am your parent result' !== propertyBag.parent.result)
@@ -123,7 +123,7 @@ const basicCode = {
                         }
                         , children: [{
                             type: 'JOIN'
-                            , name: 'SINGLEJOIN'
+                            , name: 'SingleJoin'
                             
                             , children:[
                                 { type: '../operation/user/code'
@@ -142,14 +142,14 @@ const basicCode = {
                         type: '../operation/user/code'
                         , name: 'echo code 2'
                         , config: {
-                            code: ` propertyBag.pippo = 'pippo2' 
-                            let a = propertyBag.pippo + '--' + '12345';
+                            code: ` propertyBag.mickey = 'mickey2' 
+                            let a = propertyBag.mickey + '--' + '12345';
                             propertyBag.parent_result;
                             `
                         }
                         , children: [{
                             type: 'JOIN'
-                            , name: 'SINGLEJOIN'
+                            , name: 'SingleJoin'
                         }
                         ]
                     } 
@@ -157,14 +157,14 @@ const basicCode = {
                         type: 'code'
                         , name: 'echo code 3'
                         , config: {
-                            code: ` propertyBag.pippo = 'pippo3' 
-                            let a = propertyBag.pippo + '--' + '12345';
+                            code: ` propertyBag.mickey = 'mickey3' 
+                            let a = propertyBag.mickey + '--' + '12345';
                             a;
                             `
                         }
                         , children: [{
                             type: 'JOIN'
-                            , name: 'SINGLEJOIN'
+                            , name: 'SingleJoin'
                         }
                         ]
                     } 
@@ -176,7 +176,7 @@ const basicCode = {
 
 module.exports = {
     basicFlow
-    , simplejoin
+    , simpleJoin
     , simpleEcho
     , basicCode
 };

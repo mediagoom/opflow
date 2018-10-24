@@ -73,7 +73,7 @@ describe('MISSING', () => {
             
             expect(() => {storage.storage_flow_to_json_flow(operations);} ).to.not.throw('ALL OPERATIONS SHOULD ONLY HAVE A PARENT');
 
-            operations[3].children_id = [2]; //2 shoud have 3 and 1 as parents
+            operations[3].children_id = [2]; //2 should have 3 and 1 as parents
 
             expect(() => {storage.storage_flow_to_json_flow(operations);} ).to.throw('ALL OPERATIONS SHOULD ONLY HAVE A PARENT');
 
@@ -161,7 +161,7 @@ describe('MISSING', () => {
             const flow_manager= new flow(storage);
 
             const first_flow = JSON.parse(JSON.stringify(flows.basicFlow)); 
-            const second_flow = JSON.parse(JSON.stringify(flows.simplejoin)); 
+            const second_flow = JSON.parse(JSON.stringify(flows.simpleJoin)); 
 
             const flow_id1 = await flow_manager.save_flow(first_flow);
             const flow_id2 = await flow_manager.save_flow(second_flow);

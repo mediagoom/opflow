@@ -14,7 +14,7 @@ module.exports = { broken : [
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 //, children:[{type: 'END'}]
                             }
                         ]
@@ -23,7 +23,7 @@ module.exports = { broken : [
                         type: 'NULL'
                         , name: 'SECOND'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                            {type: 'JOIN', name: 'SingleJoin'}
                         ]
                     }
                 ]
@@ -45,7 +45,7 @@ module.exports = { broken : [
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 , children:[{type: 'END'}]
                             }
                         ]
@@ -54,7 +54,7 @@ module.exports = { broken : [
                         type: 'NULL'
                         , name: 'SECOND'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                            {type: 'JOIN', name: 'SingleJoin'}
                         ]
                     }
                 ]
@@ -75,7 +75,7 @@ module.exports = { broken : [
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 , children:[{type: 'NULL'}]
                             }
                         ]
@@ -84,7 +84,7 @@ module.exports = { broken : [
                         type: 'NULL'
                         , name: 'SECOND'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                            {type: 'JOIN', name: 'SingleJoin'}
                         ]
                     }
                 ]
@@ -105,7 +105,7 @@ module.exports = { broken : [
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 , children:[{type: 'END'}]
                             }
                         ]
@@ -114,7 +114,7 @@ module.exports = { broken : [
                         type: 'NULL'
                         , name: 'SECOND'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'
+                            {type: 'JOIN', name: 'SingleJoin'
                                 , children:[{type: 'NULL'}]
                             }
                         ]
@@ -136,7 +136,7 @@ module.exports = { broken : [
                         , children:[
                             {
                                 type: 'JOIN'
-                                , name: 'SINGLEJOIN'
+                                , name: 'SingleJoin'
                                 , children:[{type: 'END'}]
                             }
                             , {type: 'END'} 
@@ -146,7 +146,7 @@ module.exports = { broken : [
                         type: 'NULL'
                         , name: 'SECOND'
                         , children:[
-                            {type: 'JOIN', name: 'SINGLEJOIN'}
+                            {type: 'JOIN', name: 'SingleJoin'}
                         ]
                     }
                 ]

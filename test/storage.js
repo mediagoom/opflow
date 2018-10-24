@@ -1,7 +1,7 @@
 /* global describe it */
 const chai   = require('chai');
 const config = require('../config');
-const dbg    = require('debug')('opflow:storagetest');
+const dbg    = require('debug')('opflow:storageTest');
 //const operation = require('../operation').OperationManager;
 const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
@@ -30,7 +30,7 @@ describe('STORAGE',  () => {
             it('should support save flow', async () => {
                 
                 const first_flow = JSON.parse(JSON.stringify(flows.basicFlow)); 
-                const second_flow = JSON.parse(JSON.stringify(flows.simplejoin)); 
+                const second_flow = JSON.parse(JSON.stringify(flows.simpleJoin)); 
 
                 //dbg('FLOW.1', JSON.stringify(flows, null, 4));
 
@@ -152,9 +152,9 @@ describe('STORAGE',  () => {
 
                 it('should convert from storage to hierarchical ' + keys[idx], async () => {
 
-                    const originalflow = flows[keys[idx]];
+                    const originalFlow = flows[keys[idx]];
 
-                    const first_flow = JSON.parse(JSON.stringify(originalflow));
+                    const first_flow = JSON.parse(JSON.stringify(originalFlow));
 
                     const storage = config.storage;
                 
@@ -166,7 +166,7 @@ describe('STORAGE',  () => {
                 
                     dbg('FLOW', JSON.stringify(hierarchical, null, 4));
 
-                    expect(hierarchical).to.be.eql(originalflow, 'The original flow and the storage => hirarchical differ');
+                    expect(hierarchical).to.be.eql(originalFlow, 'The original flow and the storage => hierarchical differ');
 
                 });
 
@@ -177,15 +177,15 @@ describe('STORAGE',  () => {
 
     describe('handle broken flow descriptor', () => {
 
-        const brokenflows = require('./broken');
+        const brokenFlows = require('./broken');
 
-        for(let idx = 0; idx < brokenflows.broken.length; idx++)
+        for(let idx = 0; idx < brokenFlows.broken.length; idx++)
         {
-            it(brokenflows.broken[idx].case, () => {
+            it(brokenFlows.broken[idx].case, () => {
 
                 let broken = false;
                 try{
-                    config.storage.json_flow_to_storage_flow(brokenflows.broken[idx].flow);
+                    config.storage.json_flow_to_storage_flow(brokenFlows.broken[idx].flow);
                 }catch(e)
                 {
                     expect(e).to.be.an.instanceof(storageError);

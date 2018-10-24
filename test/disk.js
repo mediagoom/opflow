@@ -1,4 +1,4 @@
-/* global describe it */
+/* global describe it after */
 const chai   = require('chai');
 const config = require('../config');
 //const dbg    = require('debug')('opflow:missing-test');
@@ -15,6 +15,8 @@ const disk_path_disk = '../storage/disk';
 const disk_path_memory = '../storage/memory';
 
 describe('DISK', () => {
+
+    after(() => {config.storage = null;});
     
     it('should save and reload', async () => {
         
