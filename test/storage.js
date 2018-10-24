@@ -12,6 +12,9 @@ const expect = chai.expect;
     
 describe('STORAGE',  () => {
 
+    //after(async () => {await config.storage.reset(true);});
+    //beforeEach(async () => {await config.storage.reset(true);});
+
     const storages = ['../storage/memory'
         , '../storage/disk'
     ];
@@ -196,6 +199,8 @@ describe('STORAGE',  () => {
         }
 
     });
+
+    
 
 });
 

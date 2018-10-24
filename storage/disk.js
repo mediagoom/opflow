@@ -23,6 +23,16 @@ async function directory_exist_or_create(path) {
     }
 }
 
+function directory_exist_or_create_sync(path) {
+    //const stat = await Stat(path);
+    try{
+        fs.mkdirSync(path, { recursive: true });
+    }catch(err)
+    {
+        dbg('directory_exist_or_create error %j', err);
+    }
+}
+
 async function get_files(path)
 {
     const items = await ReadDir(path);
@@ -168,8 +178,18 @@ module.exports = class diskStorage extends memory  {
             path = this.path;
 
         const json = await ReadFile(Path.join(path, this.file_path(flow_id)));
-       
-        const operations = JSON.parse(json);
+      
+        let operations = undefined;
+
+        try{
+
+            operations = JSON.parse(json);
+
+        }catch(err)
+        {
+            console.warn('invalid json in file ' + flow_id);
+            return undefined;
+        }
 
         return operations;
     }
@@ -177,6 +197,9 @@ module.exports = class diskStorage extends memory  {
     async load_flow_from_file(flow_id, path)
     {
         const operations = await this.load_storage_flow_from_file(flow_id, path);
+        if(undefined === operations)
+            return undefined;
+
         const flow = this.storage_operations_to_storage_flow(operations);
 
         flow.flow = {id : flow_id};
@@ -191,18 +214,29 @@ module.exports = class diskStorage extends memory  {
 
         const json = fs.readFileSync(Path.join(path, this.file_path(flow_id)));
        
-        const operations = JSON.parse(json);
+        try{
 
-        const flow = this.storage_operations_to_storage_flow(operations);
+            const operations = JSON.parse(json);
 
-        flow.flow = {id : flow_id};
+            const flow = this.storage_operations_to_storage_flow(operations);
 
-        return flow;
+            flow.flow = {id : flow_id};
+
+            return flow;
+
+        }catch(err)
+        {
+            console.warn('invalid json in file ' + flow_id);
+            return undefined;
+        }
     }
 
     init()
     {
         super.init();
+
+        directory_exist_or_create_sync(this.path);
+        directory_exist_or_create_sync(this.complete_path);
 
         const working = get_files_sync(this.path);
 
@@ -211,8 +245,8 @@ module.exports = class diskStorage extends memory  {
             const flow_id = this.flow_id_from_path(working[idx]);
 
             const flow = this.load_flow_from_file_sync(flow_id);
-
-            this.flows[flow_id] = flow;
+            if(undefined != flow)
+                this.flows[flow_id] = flow;
             
         }
     }
@@ -237,8 +271,8 @@ module.exports = class diskStorage extends memory  {
             const flow_id = this.flow_id_from_path(working[idx]);
 
             const flow = await this.load_flow_from_file(flow_id);
-
-            this.flows[flow_id] = flow;
+            if(undefined != flow)
+                this.flows[flow_id] = flow;
             
         }
     }

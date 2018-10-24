@@ -5,7 +5,7 @@ module.exports = {
     
     , storage : process.env.OPFLOWSTORAGE || '../storage/disk'
 
-    , typemap : process.env.OPFLOWTYPEMAP || '../operation/typemap'
+    , typeMap : process.env.OPFLOWTYPEMAP || '../operation/typemap'
 
     , disk_storage_path : process.env.OPFLOWDISKPATH || '../disk'
     

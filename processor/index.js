@@ -10,16 +10,17 @@ function computer_name()
 
     if(0 < idx)
     {
-        cn = cn + '_' + idx++;
+        cn = cn + '_' + idx;
     }
 
+    idx = idx + 1;
     return cn;
 }
 
 const config_defaults = {
     polling_interval_seconds : 30
     , active_operations : 2
-    , processor_name : computer_name()
+    , processor_name : null 
 };
 
 class ProcessorBox {
@@ -61,22 +62,15 @@ module.exports = class Processor extends EventEmitter{
         super();
 
         this.configuration = Object.assign({}, config_defaults, configs);
+        if(null == this.configuration.processor_name)
+        {
+            this.configuration.processor_name = computer_name();
+        }
         this.coordinator = coordinator;
         this.interval = null;
         this.running = {};
         this.idx = 0;
         this.completed_count = 0;
-
-        /* istanbul ignore if */
-        if(!isNaN(this.configuration.polling_interval_seconds))
-        {
-            this.interval = setInterval(() => {
-                let promise = this.poll(); // eslint-disable-line no-unused-vars
-            }
-            , (this.configuration.polling_interval_seconds * 1000));
-
-            this.interval.unref(); //do not keep node running for this
-        }
 
     }
 
@@ -148,6 +142,33 @@ module.exports = class Processor extends EventEmitter{
         });
 
         return Promise.all(promises);
+    }
+
+    start()
+    {
+        
+        if(!isNaN(this.configuration.polling_interval_seconds))
+        {
+            this.interval = setInterval(() => {
+                let promise = this.poll(); // eslint-disable-line no-unused-vars
+            }
+            , (this.configuration.polling_interval_seconds * 1000));
+
+            dbg('processor start');
+
+            this.interval.unref(); //do not keep node running for this
+        }
+        else
+        {
+            throw 'invalid configuration polling_interval_seconds';
+        }
+    }
+
+    stop()
+    {
+        if(null !== this.interval)
+            clearInterval(this.interval);
+        this.interval = null;
     }
     
 

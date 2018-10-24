@@ -153,4 +153,54 @@ describe('PROCESSOR', () => {
         
     }
 
+    it('should generate processor_name', () => {
+        const processor1 = new processor(coord);
+        const processor2 = new processor(coord);
+
+        expect(processor2.configuration.processor_name).to.be.not.eq(processor1.configuration.processor_name);
+    });
+
+    it('should start and then stop', (done) => {
+        
+        const proc = new processor(coord, {polling_interval_seconds: 0.001});
+        const test_flow = JSON.parse(JSON.stringify(test_flows.simpleEcho.flow));
+
+        flow_manager.save_flow(test_flow).then(
+            (flow_id) => {
+
+                proc.start();
+
+                expect(proc.interval).to.be.not.null;
+
+                dbg('processor-started');
+
+                setTimeout(()=>{
+                    
+                    dbg('processor-check-run');
+
+                    flow_manager.is_flow_completed(flow_id).then(
+                        (val) => {
+                            
+                            proc.stop();
+                            expect(proc.interval).to.be.null;
+                            expect(val).to.be.true;
+                            done();
+
+                        }
+                    ).catch(
+                        (err) => {
+                            done(err);
+                        }
+                    );
+            
+                }, 250);
+            }
+        ).catch(
+            (err) => {done(err);}
+        );
+
+        
+        
+    });
+
 });
