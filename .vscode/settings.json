@@ -6,5 +6,12 @@
         , "coverage/": true
         , "*.lcov" : true
     }
-    , "vim.useCtrlKeys" : false
+    ,
+    "vim.useCtrlKeys": false,
+    "cSpell.words": [
+        "Microservices",
+        "lcov",
+        "mediagoom",
+        "opflow"
+    ]
 }

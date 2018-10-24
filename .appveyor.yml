@@ -22,7 +22,7 @@ build: off
 test_script:
   - npm run eslint
   - ./node_modules/.bin/nyc --lines 95 npm test -- --reporter mocha-appveyor-reporter
-  - ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
+  - sh: ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
 
 
 cache:

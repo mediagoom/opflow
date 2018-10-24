@@ -1,5 +1,5 @@
 {
-  "name": "opflow",
+  "name": "@mediagoom/opflow",
   "version": "0.0.1",
   "description": "opflow is an operation flow bus. It allow to schedule and run in a reliable way Software operations.",
   "main": "index.js",
@@ -8,7 +8,7 @@
     , "cov-test": "nyc npm test"
     , "cov-html": "nyc report --reporter=html"
     , "cov-lcov": "nyc report --reporter=text-lcov > coverage.lcov"
-    , "eslint": "eslint ./*//*.js"
+    , "eslint": "./node_modules/.bin/eslint ./*//*.js"
   },
   "repository": {
     "type": "git",
