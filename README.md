@@ -15,20 +15,24 @@ opflow, at the moment, provide the following flow control operators:
 - IF (*todo*): will split the flow in two branch and run only one of them
 - JOIN: this allow to join different branches in your flow. Join is the only operations which can have more than one parent.
 
-        START
-        /   \
-        /     \
-      /       \
-      DO       DO
-  SOMETHING  SOMETHING ELSE IN PARALLEL
-      \         /
-      \       /
-        \     /
-        \   /
-        JOIN
-          |
-          |
-          END
+                    START
+                    /   \
+                   /     \
+                  /       \
+                 /         \
+                /           \
+              DO            DO
+            SOMETHING    SOMETHING 
+                \         ELSE IN 
+                 \        PARALLEL
+                  \         /
+                   \       /
+                    \     /
+                     \   /
+                     JOIN
+                      |
+                      |
+                     END
 
 ## Why opflow
 
