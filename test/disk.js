@@ -1,4 +1,3 @@
-/* global describe it after */
 const chai   = require('chai');
 const config = require('../config');
 //const dbg    = require('debug')('opflow:missing-test');

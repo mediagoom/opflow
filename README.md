@@ -1,4 +1,4 @@
-﻿[![Win Build Status](https://ci.appveyor.com/api/projects/status/github/mediagoom/opflow?branch=master&svg=true)](https://ci.appveyor.com/project/aseduto/opflow) [![Coverage Status](https://coveralls.io/repos/github/mediagoom/opflow/badge.svg?branch=master)](https://coveralls.io/github/mediagoom/opflow?branch=master)
+﻿[![Build Status](https://travis-ci.org/mediagoom/opflow.svg?branch=master)](https://travis-ci.org/mediagoom/opflow) [![Win Build Status](https://ci.appveyor.com/api/projects/status/github/mediagoom/opflow?branch=master&svg=true)](https://ci.appveyor.com/project/aseduto/opflow) [![Coverage Status](https://coveralls.io/repos/github/mediagoom/opflow/badge.svg?branch=master)](https://coveralls.io/github/mediagoom/opflow?branch=master)
 
 # opflow
 
@@ -15,20 +15,20 @@ opflow, at the moment, provide the following flow control operators:
 - IF (*todo*): will split the flow in two branch and run only one of them
 - JOIN: this allow to join different branches in your flow. Join is the only operations which can have more than one parent.
 
-                START
-                /   \
-               /     \
-              /       \
-             DO       DO
-          SOMETHING  SOMETHING ELSE IN PARALLEL
-             \         /
-              \       /
-               \     /
-                \   /
-                JOIN
-                  |
-                  |
-                 END
+        START
+        /   \
+        /     \
+      /       \
+      DO       DO
+  SOMETHING  SOMETHING ELSE IN PARALLEL
+      \         /
+      \       /
+        \     /
+        \   /
+        JOIN
+          |
+          |
+          END
 
 ## Why opflow
 
@@ -44,7 +44,14 @@ In the Client and Order above example opflow would try several times (you say ho
 
 ### Install
 
+```
+npm i @mediagoom/opflow
+```
+
 ### Write Code
+```
+
+```
 
 ## opflow Operations
 
