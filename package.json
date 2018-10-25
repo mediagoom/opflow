@@ -1,5 +1,8 @@
 {
   "name": "@mediagoom/opflow",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.1",
   "description": "opflow is an operation flow bus. It allow to schedule and run in a reliable way Software operations.",
   "main": "index.js",
