@@ -19,19 +19,19 @@ deploy:
 - provider: npm
   email: info@mediagoom.com
   skip_cleanup: true
-  api_key:
-    secure: DhAAwfpRg5T3Nsl84wzYYpUdHEQM5AshD0lH3bral7dKgv2KMpn97LGcjyLEMb8FgUSTu/ARoVgnwCggSnLFbDBl7ulUdPEQ+GH+N0jn7pJAaoCCoPIHV09hdSl/tIWQ11qWxwaxSGqRmbKShV4luzGu19VKw46ScPxcQGmyoKT3x8qiUPfJzVvitRO8Pt9Sp5o5CFwGO3lBKfDac0Jk/Em64gyAE/BsNX1DNvZPa3MUC6okQD9PGMZlu891g1ZRMNEncRdCuwUyMxRhcnziQD6/Mp74vIsInjDeI/hop1NFEgkG/4RQP3fuDHS+s5WZ3XlSixBsVmfS1jHKnVU9mChiDk7kb05mMfHPpvmCQJF6kuQu1R+GAdafYvs9RNh19wZNcfghrI0I+LvXXE1NsAk81G99bHa4ir06IHrsBsR5ITijpWnEiIGgMlMcnXzZeCCxoNFe3JBd4ISKVv7uqgyshrJSzd3IHex/TFgtxBtiqZIiipMUcZWeFh8PkoP+7SGo8QmtP+LUnbFUtmegvWevFIUDGRLVr55J2hFHa/r6QRv4INlxaV67z7IPDjs5qdoZRRrS8ctDm7opAcTAjGb9ohb64RUnnLyBBT833WyYIc8CBbZ6F4r9rmJRNxihFuxvFl12YXR8D9iqAGRGzrgqB3EYkIGMfs+1mr0snIw=
-  on:
-    tags: true
-    repo: mediagoom/opflow
-    node: 8
-- provider: npm
-  email: info@mediagoom.com
-  skip_cleanup: true
   tag: next
   api_key:
     secure: DhAAwfpRg5T3Nsl84wzYYpUdHEQM5AshD0lH3bral7dKgv2KMpn97LGcjyLEMb8FgUSTu/ARoVgnwCggSnLFbDBl7ulUdPEQ+GH+N0jn7pJAaoCCoPIHV09hdSl/tIWQ11qWxwaxSGqRmbKShV4luzGu19VKw46ScPxcQGmyoKT3x8qiUPfJzVvitRO8Pt9Sp5o5CFwGO3lBKfDac0Jk/Em64gyAE/BsNX1DNvZPa3MUC6okQD9PGMZlu891g1ZRMNEncRdCuwUyMxRhcnziQD6/Mp74vIsInjDeI/hop1NFEgkG/4RQP3fuDHS+s5WZ3XlSixBsVmfS1jHKnVU9mChiDk7kb05mMfHPpvmCQJF6kuQu1R+GAdafYvs9RNh19wZNcfghrI0I+LvXXE1NsAk81G99bHa4ir06IHrsBsR5ITijpWnEiIGgMlMcnXzZeCCxoNFe3JBd4ISKVv7uqgyshrJSzd3IHex/TFgtxBtiqZIiipMUcZWeFh8PkoP+7SGo8QmtP+LUnbFUtmegvWevFIUDGRLVr55J2hFHa/r6QRv4INlxaV67z7IPDjs5qdoZRRrS8ctDm7opAcTAjGb9ohb64RUnnLyBBT833WyYIc8CBbZ6F4r9rmJRNxihFuxvFl12YXR8D9iqAGRGzrgqB3EYkIGMfs+1mr0snIw=
   on:
     all_branches: true
+    repo: mediagoom/opflow
+    node: 10
+- provider: npm
+  email: info@mediagoom.com
+  skip_cleanup: true
+  api_key:
+    secure: DhAAwfpRg5T3Nsl84wzYYpUdHEQM5AshD0lH3bral7dKgv2KMpn97LGcjyLEMb8FgUSTu/ARoVgnwCggSnLFbDBl7ulUdPEQ+GH+N0jn7pJAaoCCoPIHV09hdSl/tIWQ11qWxwaxSGqRmbKShV4luzGu19VKw46ScPxcQGmyoKT3x8qiUPfJzVvitRO8Pt9Sp5o5CFwGO3lBKfDac0Jk/Em64gyAE/BsNX1DNvZPa3MUC6okQD9PGMZlu891g1ZRMNEncRdCuwUyMxRhcnziQD6/Mp74vIsInjDeI/hop1NFEgkG/4RQP3fuDHS+s5WZ3XlSixBsVmfS1jHKnVU9mChiDk7kb05mMfHPpvmCQJF6kuQu1R+GAdafYvs9RNh19wZNcfghrI0I+LvXXE1NsAk81G99bHa4ir06IHrsBsR5ITijpWnEiIGgMlMcnXzZeCCxoNFe3JBd4ISKVv7uqgyshrJSzd3IHex/TFgtxBtiqZIiipMUcZWeFh8PkoP+7SGo8QmtP+LUnbFUtmegvWevFIUDGRLVr55J2hFHa/r6QRv4INlxaV67z7IPDjs5qdoZRRrS8ctDm7opAcTAjGb9ohb64RUnnLyBBT833WyYIc8CBbZ6F4r9rmJRNxihFuxvFl12YXR8D9iqAGRGzrgqB3EYkIGMfs+1mr0snIw=
+  on:
+    tags: true
     repo: mediagoom/opflow
     node: 8
