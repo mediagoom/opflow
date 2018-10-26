@@ -136,6 +136,7 @@ describe('STORAGE',  () => {
                     else
                     {
                         const history = await flow_manager.get_operation_history(op);
+                        expect(history.length).to.be.eq(3, 'Operation History length');
                         dbg('Completed retries', JSON.stringify(history, null, 4));
                         op = null;
                     }

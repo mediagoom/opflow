@@ -137,14 +137,27 @@ module.exports = class diskStorage extends memory  {
         return super.is_flow_completed(flow_id);
     }
 
-    async flow_changed(flow, ended)
+    async operation_changed(operation_id, type)
     {
-        dbg('flow changed', flow.flow.id, ended);
+        const flow_id = this.flow_id(operation_id);
+        //await this.flow_changed(this.flows[flow_id], type);
+        if(! await this.is_flow_completed(flow_id) )
+        {
+            return super.operation_changed(operation_id, type);
+        }
+    }
+
+    async flow_changed(flow, type)
+    {
+        dbg('flow changed', flow.flow.id, type);
+
+        if('HISTORY' === type || 'ASoF' === type)
+            return;
 
         try{
 
             await this.disk_save_flow(flow);
-            if(ended)
+            if('END' == type)
             {
                 await this.complete_flow(flow.flow.id);
                 await super.discard_flow(flow.flow.id);

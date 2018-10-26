@@ -183,32 +183,39 @@ class coordinator extends EventEmitter
      */
     async get_work(processor_name, processor_work_id)
     {
-        await this.load_operations('get_work');
+        try{
+            
+            await this.load_operations('get_work');
 
-        if(0 === this.op_to_do.length)
+            if(0 === this.op_to_do.length)
+            {
+                //nothing todo
+                return null;    
+            }        
+
+            const operation = this.op_to_do[0];
+            this.op_to_do = this.op_to_do.slice(1);
+
+            operation.processor_name = processor_name;
+            operation.processor_work_id = processor_work_id;
+
+            this.working.push(operation);
+
+            print_todo('GET WORK', this.op_to_do);
+            dbg('WORKING ON ', JSON.stringify(Object.assign({}, operation, {children: null, history: null}), null, 4));
+
+            return {
+                path : operation.external_type
+                , config: operation.config
+                , tag: operation.id
+                , propertyBag: JSON.parse(JSON.stringify(operation.propertyBag))
+            };
+
+        }catch(err)
         {
-            //nothing todo
-            return null;    
-        }        
-
-        const operation = this.op_to_do[0];
-        this.op_to_do = this.op_to_do.slice(1);
-
-        operation.processor_name = processor_name;
-        operation.processor_work_id = processor_work_id;
-
-        this.working.push(operation);
-
-        print_todo('GET WORK', this.op_to_do);
-        dbg('WORKING ON ', JSON.stringify(Object.assign({}, operation, {children: null, history: null}), null, 4));
-
-        return {
-            path : operation.external_type
-            , config: operation.config
-            , tag: operation.id
-            , propertyBag: JSON.parse(JSON.stringify(operation.propertyBag))
-        };
-
+            console.error(err.message, JSON.stringify(err, null, 4));
+            throw err;
+        }
     }
     /**
      * Called by the processor to signal the completion successful or not of an operation
@@ -221,29 +228,36 @@ class coordinator extends EventEmitter
      */
     async processed(tag, succeeded, result, propertyBag, processor_name, processor_work_id)
     {
-        const operation = await this.flow.get_operation(tag);
+        try{
+            const operation = await this.flow.get_operation(tag);
 
-        const w = this.working.find(element => {return element.id === tag;});
+            const w = this.working.find(element => {return element.id === tag;});
 
-        if(w.processor_name != processor_name ||
-            w.processor_work_id != processor_work_id)
+            if(w.processor_name != processor_name ||
+                w.processor_work_id != processor_work_id)
+            {
+                throw 'invalid processor';
+            }
+
+            operation.executed = true;
+
+            dbg('COMPLETED ', tag);
+
+            if(!succeeded)
+                await this.flow.register_failure(operation, result);
+            else
+            {
+                operation.propertyBag = propertyBag;
+                await this.flow.register_success(operation, result);
+            }
+
+            await this.load_operations('processed');
+
+        }catch(err)
         {
-            throw 'invalid processor';
+            console.error(err.message, JSON.stringify(err, null, 4));
+            throw err;
         }
-
-        operation.executed = true;
-
-        dbg('COMPLETED ', tag);
-
-        if(!succeeded)
-            await this.flow.register_failure(operation, result);
-        else
-        {
-            operation.propertyBag = propertyBag;
-            await this.flow.register_success(operation, result);
-        }
-
-        await this.load_operations('processed');
     }
 
     async get_hierarchical_flow(flow_id)

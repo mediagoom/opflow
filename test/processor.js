@@ -1,11 +1,9 @@
-/* global describe it */
 const chai   = require('chai');
 const config = require('../config');
 const dbg    = require('debug')('opflow:processor-test');
-//const operation = require('../operation').OperationManager;
 const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
-
+const test  = require('./test-util');
 const coordinator = require('../coordinator');
 const processor = require('../processor');
 
@@ -16,10 +14,8 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 describe('PROCESSOR', () => {
-        
-    
 
-    console.log('PROCESSOR TEST', process.env.DEBUG);
+    //console.log('PROCESSOR TEST', process.env.DEBUG);
 
     const test_flows = {
         'basicCode' : {
@@ -160,6 +156,7 @@ describe('PROCESSOR', () => {
         expect(processor2.configuration.processor_name).to.be.not.eq(processor1.configuration.processor_name);
     });
 
+    /*
     it('should start and then stop', (done) => {
         
         const proc = new processor(coord, {polling_interval_seconds: 0.001});
@@ -199,6 +196,32 @@ describe('PROCESSOR', () => {
             (err) => {done(err);}
         );
 
+        
+        
+    });
+    */
+
+    it('should start and then stop', async () => {
+            
+        const proc = new processor(coord, {polling_interval_seconds: 0.001});
+        const test_flow = JSON.parse(JSON.stringify(test_flows.simpleEcho.flow));
+
+        const flow_id = await flow_manager.save_flow(test_flow);
+
+        proc.start();
+
+        expect(proc.interval).to.be.not.null;
+        dbg('processor-started');
+
+        while (! await flow_manager.is_flow_completed(flow_id))
+        {
+            dbg('processor-check-run');
+
+            await test.Wait(10);
+            
+        }
+
+        proc.stop();
         
         
     });

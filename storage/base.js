@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const dbg    = require('debug')('opflow:basestorage');
+const dbg          = require('debug')('opflow:base');
 const storageError = require('../storage/storageError');
 
 const operation_default =  {
@@ -272,7 +272,7 @@ function construct_json_branch(root, flow)
 }
 
 
-class basestorage extends EventEmitter{
+class base extends EventEmitter{
 
     constructor(typemap)
     {
@@ -370,7 +370,7 @@ class basestorage extends EventEmitter{
 
         if(null == root || root.type != 'START')
         {
-            basestorage.throw_storage_error('INVALID ROOT OPERATION');
+            base.throw_storage_error('INVALID ROOT OPERATION');
         }
 
         if(null == json_flow.id)
@@ -450,6 +450,6 @@ class basestorage extends EventEmitter{
     }
 }
 
-module.exports = basestorage;
+module.exports = base;
 
-//export {basestorage, STORAGEEVENT}
+//export {base, STORAGEEVENT}

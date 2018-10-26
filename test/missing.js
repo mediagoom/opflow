@@ -1,9 +1,8 @@
-/* global describe it */
 const chai   = require('chai');
 const config = require('../config');
 //const dbg    = require('debug')('opflow:missing-test');
 const flow  = require('../operation').flow_manager;
-const base_storage = require('../storage/basestorage');
+const base_storage = require('../storage/base');
 const flows = require('./flows');
 
 //const coordinator = require('../coordinator');

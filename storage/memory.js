@@ -1,6 +1,15 @@
-const basestorage = require('./basestorage');
-const dbg    = require('debug')('opflow:memorystorage');
+const base = require('./base');
+const dbg  = require('debug')('opflow:memorystorage');
 
+const OPERATION_CHANGE = Object.freeze({
+    START : 'START'
+    , END : 'END'
+    , AsOF : 'AsOF'
+    , HISTORY : 'HISTORY'
+    , LEASE : 'LEASE'
+    , COMPLETE : 'COMPLETE'
+    , RESET : 'RESET'
+});
 
 function operation_is_runnable(element)
 {
@@ -60,7 +69,7 @@ async function operation_has_parent_completed(op, flow, mem)
 }
 
 
-module.exports = class memorystorage extends basestorage  {
+module.exports = class memorystorage extends base  {
     
     constructor(typemap)
     {
@@ -75,9 +84,9 @@ module.exports = class memorystorage extends basestorage  {
         this.init();
     }
 
-    async flow_changed(flow, ended)
+    async flow_changed(flow, type)
     {
-        dbg('flow changed', flow.flow.id, ended);
+        dbg('flow changed', flow.flow.id, type);
     }
 
     async discard_flow(flow_id)
@@ -90,13 +99,13 @@ module.exports = class memorystorage extends basestorage  {
         const flow = this.flow_id(operation_id);
         dbg('flow ended', this.flows[flow].flow.id);
 
-        return this.flow_changed(this.flows[flow], true);
+        return this.flow_changed(this.flows[flow], OPERATION_CHANGE.END);
     }
 
-    async operation_changed(operation_id)
+    async operation_changed(operation_id, type)
     {
         const flow = this.flow_id(operation_id);
-        await this.flow_changed(this.flows[flow]);
+        await this.flow_changed(this.flows[flow], type);
     }
     
     async save_flow(flow)
@@ -128,7 +137,7 @@ module.exports = class memorystorage extends basestorage  {
 
             dbg('leasing op [%s] %s %s %d %s', element.name, element.id, element.lease_time, type.lease, element.type);
            
-            await this.operation_changed(element.id);
+            await this.operation_changed(element.id, OPERATION_CHANGE.LEASE);
             
         }
         
@@ -141,7 +150,7 @@ module.exports = class memorystorage extends basestorage  {
 
         if(undefined === flow)
         {
-            basestorage.throw_storage_error('invalid flow name ' + flow_id);
+            base.throw_storage_error('invalid flow name ' + flow_id);
         }
 
         const op = flow.operations.find( el => {return !el.completed;});
@@ -233,7 +242,7 @@ module.exports = class memorystorage extends basestorage  {
     {
         if(undefined === operation_id)
         {
-            basestorage.throw_storage_error('undefined operation_id to get_operations');
+            base.throw_storage_error('undefined operation_id to get_operations');
         }
 
         const flow_id = this.flow_id(operation_id);
@@ -249,7 +258,7 @@ module.exports = class memorystorage extends basestorage  {
 
         const op = await this.get_operation(operation.id);
         if(op.completed)
-            basestorage.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
+            base.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
 
         dbg('COMPLETED [%s] %s -> %s', op.name, op.type, op.id);
         op.succeeded = success;
@@ -258,7 +267,7 @@ module.exports = class memorystorage extends basestorage  {
 
         operation.lease_time = null;
 
-        await this.operation_changed(operation.id);
+        await this.operation_changed(operation.id, OPERATION_CHANGE.COMPLETE);
 
         if('END' === operation.type && op.succeeded)
         {
@@ -281,7 +290,7 @@ module.exports = class memorystorage extends basestorage  {
     {
         operation.asOf = asOf;
 
-        return this.operation_changed(operation.id);
+        return this.operation_changed(operation.id, OPERATION_CHANGE.AsOF);
     }
 
     async add_history(operation, message, success)
@@ -297,7 +306,7 @@ module.exports = class memorystorage extends basestorage  {
             }
         );
 
-        return this.operation_changed(operation.id);
+        return this.operation_changed(operation.id, OPERATION_CHANGE.HISTORY);
         
     }
 
@@ -309,7 +318,7 @@ module.exports = class memorystorage extends basestorage  {
         op.lease_time = undefined;
         op.modified = new Date();
 
-        return this.operation_changed(op.id);
+        return this.operation_changed(op.id, OPERATION_CHANGE.RESET);
     }
 
     async get_parent(operation)
