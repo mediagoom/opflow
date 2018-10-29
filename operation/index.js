@@ -1,11 +1,14 @@
 //const dbg    = require('debug')('opflow:operations');
+const EventEmitter = require('events');
 
 /**  */
-class flow_manager
+class flow_manager extends EventEmitter
 {
     constructor(operation_storage)
     {
+        super();
         this.storage = operation_storage;
+        this.storage.on(this.storage.events.END, (flow_id) => { this.emit(this.storage.events.END, flow_id);} );
     }    
 
     async save_flow(flow)

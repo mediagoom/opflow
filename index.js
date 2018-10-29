@@ -1,10 +1,11 @@
-const config      = require('./config');
-const dbg         = require('debug')('opflow:wire');
+const config       = require('./config');
+const dbg          = require('debug')('opflow:wire');
 const flow_manager = require('./operation').flow_manager;
-const coordinator = require('./coordinator');
-const processor   = require('./processor');
+const coordinator  = require('./coordinator');
+const processor    = require('./processor');
+const EventEmitter = require('events');
 
-function initialize_all(wire)
+function initialize_all(wire, create_processor)
 {
     if(null === wire.flow_manager)
     {
@@ -16,19 +17,22 @@ function initialize_all(wire)
     {
         dbg('create coordinator', wire.configuration.coordinator);
         wire.coordinator = new coordinator(wire.flow_manager, wire.configuration.coordinator);
+
+        wire.coordinator.on('end', (flow_id)=> { wire.emit('end', flow_id); });
     }
 
-    if(null === wire.processor)
+    if(null === wire.processor && true === create_processor)
     {
         dbg('create processor', wire.configuration.processor);
         wire.processor = new processor(wire.coordinator, wire.configuration.processor);
     }
 }
 
-class Wire  {
+class Wire extends EventEmitter  {
 
     constructor()
     {
+        super();
         this.configuration = { processor : {} , storage : {},  coordinator : {} };
         this.flow_manager = null;
         this.coordinator = null;
@@ -38,15 +42,25 @@ class Wire  {
      * Start the processor
      */
     start(){
-        initialize_all(this);
-        this.processor.start();
+
+        if(null === this.processor)
+        {
+            initialize_all(this, true);
+            this.processor.start();
+            return true;
+        }
+
+        return false;
     }
     /**
      * Stop the processor
      */
     stop(){
+
         initialize_all(this);
         this.processor.stop();
+        this.processor = null;
+
     }
     /**
      * Configure the processor before starting it.
@@ -73,7 +87,15 @@ class Wire  {
     async add_flow(flow)
     {
         initialize_all(this);
-        return this.flow_manager.save_flow(flow);
+
+        const flow_id = await this.flow_manager.save_flow(flow);
+        
+        //make sure we start processing it right away
+        if(null !== this.processor){
+            await this.processor.poll();
+        }
+
+        return flow_id;
     }
     /**
      * Return a runtime flow. An array of operations;

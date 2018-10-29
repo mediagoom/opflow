@@ -52,6 +52,7 @@ const STORAGEEVENT = Object.freeze({
     , OPNEW: 'opnew'
     , ERROR:  'error'
     , MODIFIED: 'modified'
+    , END : 'end'
 });
 
 function pad(num, size) {

@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const dbg    = require('debug')('opflow:coordinator');
+const dbg          = require('debug')('opflow:coordinator');
 
 class coordinatorError extends Error
 {
@@ -40,8 +40,8 @@ async function load_and_process_system(op_to_do, flow, batch)
     {
         if(0 === op_to_do.length)
         {
-            dbg('loading from storage');
-            op_to_do = await flow.load_operations(batch);
+            dbg('loading from storage %d', (batch - result.length));
+            op_to_do = await flow.load_operations(batch - result.length);
             if(0 === op_to_do.length)
             {
                 //nothing to do
@@ -156,6 +156,8 @@ class coordinator extends EventEmitter
         this.working = [];
 
         this.loading = false;
+
+        this.flow.on('end', (flow_id) => {this.emit('end', flow_id);});
     }
 
     async load_operations(ctx)
@@ -163,11 +165,20 @@ class coordinator extends EventEmitter
         if(0 == this.op_to_do.length /*< this.configuration.op_batch*/ && (!this.loading))
         {
             this.loading = true;
-            dbg(ctx, 'loading operations', this.op_to_do.length);
-            const ops = await load_and_process_system(this.op_to_do, this.flow, this.configuration.op_batch);
-            print_todo(ctx + ' load operations', ops);
-            this.op_to_do = ops;
-            this.loading = false;
+            try{
+
+                dbg(ctx, 'loading operations', this.op_to_do.length);
+                const ops = await load_and_process_system(this.op_to_do, this.flow, this.configuration.op_batch);
+                print_todo(ctx + ' load operations', ops);
+                this.op_to_do = ops;
+                this.loading = false;
+
+            }catch(err)
+            {
+                dbg(ctx, 'load_operations err %s %s %j', err.message, err.stack, err);
+                this.loading = false;
+                throw err;
+            }
         }
     }
     /**

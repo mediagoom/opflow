@@ -13,6 +13,7 @@
         "lcov",
         "linebreak",
         "mediagoom",
-        "opflow"
+        "opflow",
+        "promisify"
     ]
 }

@@ -20,6 +20,8 @@ async function directory_exist_or_create(path) {
     }catch(err)
     {
         dbg('directory_exist_or_create error %j', err);
+        if(err.code !== 'EEXIST')
+            throw err;
     }
 }
 

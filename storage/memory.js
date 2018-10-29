@@ -96,10 +96,13 @@ module.exports = class memorystorage extends base  {
 
     async flow_ended(operation_id)
     {
-        const flow = this.flow_id(operation_id);
-        dbg('flow ended', this.flows[flow].flow.id);
+        const flow_id = this.flow_id(operation_id);
+        dbg('flow ended', this.flows[flow_id].flow.id);
 
-        return this.flow_changed(this.flows[flow], OPERATION_CHANGE.END);
+        await this.flow_changed(this.flows[flow_id], OPERATION_CHANGE.END);
+
+        this.emit(this.events.END, flow_id);
+        
     }
 
     async operation_changed(operation_id, type)
@@ -242,7 +245,7 @@ module.exports = class memorystorage extends base  {
     {
         if(undefined === operation_id)
         {
-            base.throw_storage_error('undefined operation_id to get_operations');
+            base.throw_storage_error('passed Undefined operation_id to get_operation');
         }
 
         const flow_id = this.flow_id(operation_id);

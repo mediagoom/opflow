@@ -138,7 +138,7 @@ describe('MISSING', () => {
 
             const storage = await config.change_storage(storage_name);
 
-            const err = 'undefined operation_id to get_operations';
+            const err = 'passed Undefined operation_id to get_operation';
             let msg = 'x';
 
             try{

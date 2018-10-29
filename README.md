@@ -12,7 +12,7 @@ opflow, at the moment, provide the following flow control operators:
 
 - START: should always be the first operation in the flow
 - END: should always be the last operation in the flow
-- IF (*todo*): will split the flow in two branch and run only one of them
+- IF (*coming soon*): will split the flow in two branch and run only one of them
 - JOIN: this allow to join different branches in your flow. Join is the only operations which can have more than one parent.
 
                     START
@@ -53,9 +53,68 @@ npm i @mediagoom/opflow
 ```
 
 ### Write Code
-```
+```javascript
+
+const opflow = require('@mediagoom/opflow');
+
+opflow.start()
+
+const flow_id = await opflow.add_flow(your_flow);
+
 
 ```
+
+### Unit Testing
+When you use opflow you may want to clearly divide the testing of your flow logic from the real flow running.
+Since opflow is specifically design to isolate your code from external problem you should run the full flow in integration testing.
+
+In order to unit test the logic and design of your flow you can write the json structure of your flow and assign as operation type one of *code, echo or NULL*.
+
+For instance let say you have a *read_file* operation. When full running the application you would define the operations as:
+```javascript
+....
+  children : { type : 'read_file', name : 'read a file', config : {path : '<file path to read>'}, children : ... }
+```
+
+In unit test you may define your operation as:
+```javascript
+....
+  children : { type : 'code', name : 'read a file', config : {path : '<file path to read>', code : '"<the mock of your file content>"'} children : ... }
+```
+
+With your *read_file* operation mocked as above you can define your unit test as:
+
+```javascript
+const chai   = require('chai');
+const flows  = require('<your unit test flows definitions');
+
+const expect = chai.expect;
+const unitTest = require('@mediagoom/opflow/unit-test');
+
+describe('UNIT-TEST TESTING', () => {
+    
+    const keys = Object.keys(flows);
+
+    for(let idx = 0; idx < keys.length; idx++)
+    {
+        const key = keys[idx];
+
+        it('should run unit test for flow ' + key , async () => {
+            
+            const operations = await unitTest(flows[key]);
+
+            const end = operations.find ( (el) => {return el.type === 'END';} );
+
+            expect(end.completed).to.be.true;
+        });
+    }
+});
+
+```
+
+### Integration Testing
+
+For integration testing just switch the type of the above operation from *code* to *read_file*.
 
 ## opflow Operations
 
