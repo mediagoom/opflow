@@ -18,16 +18,32 @@ describe('WIRE', () => {
 
         opflow.configure({processor : {polling_interval_seconds : 0.001}});
 
-        const flow_id = await opflow.add_flow(test_flow);
-
         opflow.start();
 
-        dbg('processor-started');
+        let event_end = false;
+
+        opflow.on('end', (flow_id)=>{ 
+            dbg('opflow-end', flow_id);
+            event_end = true; }
+        );
+        
+        const flow_id = await opflow.add_flow(test_flow);
+
+
+        dbg('processor-started', flow_id);
 
         while(! await opflow.is_flow_completed(flow_id) )
         {
             await test.Wait(10);
         }                    
+       
+        const already_running = !opflow.start();
+
+        let count = 0;
+        while(!event_end && 10 > count++)
+            await test.Wait(10);
+
+        expect(already_running).to.be.true;
         
         opflow.stop();
                             
@@ -40,6 +56,8 @@ describe('WIRE', () => {
         const h = await opflow.get_flow(flow_id);
 
         expect(h.root.type).to.be.eq('START');
+
+        expect(event_end).to.be.true
 
     });
 });
