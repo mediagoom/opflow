@@ -113,19 +113,27 @@ module.exports = class Processor extends EventEmitter{
     {
         let pushed = false;
 
-        while(this.configuration.active_operations > this.queue_size())
+        try{
+
+            while(this.configuration.active_operations > this.queue_size())
+            {
+                const idx = this.idx;
+                const op = await this.coordinator.get_work(this.configuration.processor_name, idx);
+
+                if(null == op)
+                    return pushed;
+                
+                dbg('RUNNING OPERATION ', op.tag, Object.keys(this.running));
+                this.running[op.tag] = new ProcessorBox(op, idx, this);
+                pushed = true;
+
+                this.idx++;
+            }
+
+        }catch(err)
         {
-            const idx = this.idx;
-            const op = await this.coordinator.get_work(this.configuration.processor_name, idx);
-
-            if(null == op)
-                return pushed;
-            
-            dbg('RUNNING OPERATION ', op.tag, Object.keys(this.running));
-            this.running[op.tag] = new ProcessorBox(op, idx, this);
-            pushed = true;
-
-            this.idx++;
+            console.error(err.message, err.stack);
+            throw err;
         }
 
         return pushed;
@@ -150,7 +158,7 @@ module.exports = class Processor extends EventEmitter{
         if(!isNaN(this.configuration.polling_interval_seconds))
         {
             this.interval = setInterval(() => {
-                let promise = this.poll(); // eslint-disable-line no-unused-vars
+                /*let promise =*/ this.poll(); 
             }
             , (this.configuration.polling_interval_seconds * 1000));
 

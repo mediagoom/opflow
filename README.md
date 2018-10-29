@@ -1,4 +1,4 @@
-﻿[![Build Status](https://travis-ci.org/mediagoom/opflow.svg?branch=master)](https://travis-ci.org/mediagoom/opflow) [![Win Build Status](https://ci.appveyor.com/api/projects/status/github/mediagoom/opflow?branch=master&svg=true)](https://ci.appveyor.com/project/aseduto/opflow) [![Coverage Status](https://coveralls.io/repos/github/mediagoom/opflow/badge.svg?branch=master)](https://coveralls.io/github/mediagoom/opflow?branch=master)
+﻿[![Build Status](https://travis-ci.org/mediagoom/opflow.svg?branch=master)](https://travis-ci.org/mediagoom/opflow) [![Win Build Status](https://ci.appveyor.com/api/projects/status/github/mediagoom/opflow?branch=master&svg=true)](https://ci.appveyor.com/project/aseduto/opflow) [![Coverage Status](https://coveralls.io/repos/github/mediagoom/opflow/badge.svg?branch=master)](https://coveralls.io/github/mediagoom/opflow?branch=master) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/mediagoom/opflow.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mediagoom/opflow/context:javascript) [![dependencies](https://david-dm.org/mediagoom/opflow.svg)](https://david-dm.org/mediagoom/opflow)
 
 # opflow
 
@@ -72,17 +72,30 @@ In order to unit test the logic and design of your flow you can write the json s
 
 For instance let say you have a *read_file* operation. When full running the application you would define the operations as:
 ```javascript
-....
-  children : { type : 'read_file', name : 'read a file', config : {path : '<file path to read>'}, children : ... }
+...
+  children : { 
+    type : 'read_file', name : 'read a file'
+    , config : {
+        path : '<file path to read>'
+        }
+    , children : ... 
+  }
 ```
 
 In unit test you may define your operation as:
 ```javascript
-....
-  children : { type : 'code', name : 'read a file', config : {path : '<file path to read>', code : '"<the mock of your file content>"'} children : ... }
+...
+  children : { 
+    type : 'code', name : 'read a file'
+    , config : {
+        path : '<file path to read>'
+        , code : '"<the mock of your file content>"'
+      } 
+    , children : ... 
+  }
 ```
 
-With your *read_file* operation mocked as above you can define your unit test as:
+With your *read_file* operation, mocked as above, you can define your unit test as:
 
 ```javascript
 const chai   = require('chai');
