@@ -5,7 +5,6 @@ const dbg    = require('debug')('opflow:operation-integration-test');
 const expect = chai.expect;
 
 
-
 describe('TEST OPERATIONS', () => {
 
     const execute = require('../operation/user/execute');
@@ -44,6 +43,8 @@ describe('TEST OPERATIONS', () => {
             const result = await execute.process(config, propertyBag);
 
             dbg('execute %s %O', os.platform(), result );
+
+            expect(propertyBag.execute.code).to.be.eq(0, 'process return code');
 
         });
     }
