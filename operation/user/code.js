@@ -1,4 +1,4 @@
-
+const dbg    = require('debug')('opflow:code');
 
 
 module.exports = {
@@ -6,7 +6,7 @@ module.exports = {
     {
         const vm = require('vm');
 
-        let result = vm.runInNewContext(config.code, {config: config, propertyBag: propertyBag});
+        let result = vm.runInNewContext(config.code, {config: config, propertyBag: propertyBag, dbg});
 
         return result;
 
