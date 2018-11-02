@@ -53,12 +53,8 @@ async function operation_has_parent_completed(op, flow, mem)
 
     let process_operation = false;
     const parent_id = flow.parents[op.id];
-
-    
                 
-    if(
-        (undefined === parent_id) 
-    )
+    if(undefined === parent_id) 
     {
         if(op.type === 'START')
             process_operation = true;
@@ -140,7 +136,10 @@ async function evaluate_operation_lease(operations, no_more, flow, op, mem)
                         else
                         {
                             const parent_id = await mem.get_parent(operation_dependency);
-                            operation_dependency = await mem.get_operation(parent_id); 
+                            operation_dependency = await mem.get_operation(parent_id);
+                            //going up we got an other join
+                            if('JOIN' === operation_dependency.type)
+                                operation_dependency = undefined;
                         }
                     }
                     else
