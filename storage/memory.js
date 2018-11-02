@@ -78,7 +78,7 @@ function add_to_operations_if_not_there(op, operations)
 {
     let e = undefined;
     
-    if(0 < op.length)
+    if(0 < operations.length) //if(0 < op.length)
         e = operations.find((el) => {return el.id == op.id;});
 
     if(undefined === e)
@@ -117,6 +117,10 @@ async function evaluate_operation_lease(operations, no_more, flow, op, mem)
             if(!operation_dependency.completed)
             {
                 all_completed = false;
+
+                //avoid problem for two consecutive joins
+                if('JOIN' === operation_dependency.type)
+                    operation_dependency = undefined;
                 
                 while(undefined !== operation_dependency)
                 {

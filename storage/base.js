@@ -245,10 +245,10 @@ function construct_json_branch(root, flow)
 
 
             if('JOIN' === op.type  
-                && undefined !== op.processedjoin   
+                && undefined !== op.processed_join   
+                    && (root.id !== op.processed_join)
             )
-            {
-               
+            {               
                 let join = {name : op.name, type : 'JOIN'};
                 root.children.push(join);
                 
@@ -260,7 +260,7 @@ function construct_json_branch(root, flow)
             
             if('JOIN' === op.type)
             {
-                op.processedjoin = true;
+                op.processed_join = root.id;
             } 
             
 
@@ -429,7 +429,7 @@ class base extends EventEmitter{
                     delete op[k];
             });
 
-            delete op.processedjoin;
+            delete op.processed_join;
 
         });
 

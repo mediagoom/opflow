@@ -17,6 +17,42 @@ const basicFlow = {
 
 const simpleJoin = {
     root: {
+        type : 'START', name : 'ROOT'
+        , children:[
+            {
+                type: 'echo', name: 'FIRST'
+                , children:[
+                    {type: 'JOIN', name: 'FirstJoin'
+                        , children : [
+                            {type: 'JOIN', name: 'SecondJoin'
+                                , children: [{type: 'END'}]    
+                            }]}
+                ]
+            }
+            , {
+                type: 'echo', name: 'SECOND'
+                , children:[{
+                    type: 'echo', name: 'THIRD'
+                    , children:[
+                        {type: 'JOIN', name: 'FirstJoin'}
+                    ]}]
+            }
+            , {
+                type: 'echo', name: 'FOURTH'
+                , children:[{
+                    type: 'echo', name: 'FIFTH'
+                    , children:[
+                        {type: 'JOIN', name: 'SecondJoin'}
+                    ]}]
+            }
+        ]
+    }
+};
+
+/*
+
+const simpleJoin = {
+    root: {
         type : 'START'
         , name : 'ROOT'
         , children:[
@@ -44,32 +80,6 @@ const simpleJoin = {
     }
 };
 
-/*
-const simpleJoin = {
-    root: {
-        type : 'START'
-        , name : 'ROOT'
-        , children:[
-            {
-                type: 'NULL'
-                , name: 'FIRST'
-                , children:[
-                    {type: 'JOIN'
-                        , name: 'SingleJoin'
-                        , children:[{type: 'END'}]
-                    }
-                ]
-            }
-            , {
-                type: 'NULL'
-                , name: 'SECOND'
-                , children:[{
-                    type: 'JOIN', name: 'SingleJoin'
-                }]
-            }
-        ]
-    }
-};
 */
 
 const simpleEcho = {
