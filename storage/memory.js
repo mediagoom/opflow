@@ -68,12 +68,83 @@ async function operation_has_parent_completed(op, flow, mem)
     return process_operation;
 }
 
+function add_to_operations_if_not_there(op, operations)
+{
+    const e = operations.find((el) => {return el.id == op.id;});
+
+    if(undefined === e)
+    {
+        operations.push(op);
+        return true;
+    }
+
+    return false;
+}
+
+async function evaluate_operation_lease(operations, no_more, flow, op, mem)
+{
+    let ret = false;
+    const join = flow.joinsparents[op.id];
+
+    if(undefined === join) //we are not the son of a join
+    {
+        let process_operation = await operation_has_parent_completed(op, flow, mem);                
+
+        if(process_operation)
+        {
+            dbg('found op to run: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+            ret = add_to_operations_if_not_there(op, operations);
+            if(operations.length >= no_more)
+                return ret;
+        }
+    }
+    else
+    {
+        let all_completed = true;
+
+        for(let idx = 0; idx < join.length; idx++)
+        {   
+            const operation_dependency = await mem.get_operation(join[idx]);
+            if(!operation_dependency.completed)
+            {
+                all_completed = false;
+                if(operation_is_runnable(operation_dependency))
+                {
+
+                    let process_operation = await operation_has_parent_completed(operation_dependency, flow, mem);                
+                            
+                    if(process_operation)
+                    {
+                        dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, operation_dependency, {children : null}), null, 4));
+                        ret = add_to_operations_if_not_there(operation_dependency, operations);
+                        if(operations.length >= no_more)
+                            return ret;
+                    }
+                }
+            }
+        }
+
+        if(all_completed)
+        {
+            dbg('found op to run [all]: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+                                
+            //we get here all join parents are completed
+            ret = add_to_operations_if_not_there(op, operations);
+            if(operations.length >= no_more)
+                return ret;
+        }
+    }
+
+    return ret;
+}
+
+
 
 module.exports = class memorystorage extends base  {
     
-    constructor(typemap)
+    constructor(type_map)
     {
-        super(typemap);
+        super(type_map);
         this.flows = {};
     }
 
@@ -84,9 +155,9 @@ module.exports = class memorystorage extends base  {
         this.init();
     }
 
-    async flow_changed(flow, type)
+    async flow_changed(flow, type, operation_id)
     {
-        dbg('flow changed', flow.flow.id, type);
+        dbg('flow changed', flow.flow.id, type, operation_id);
     }
 
     async discard_flow(flow_id)
@@ -108,7 +179,7 @@ module.exports = class memorystorage extends base  {
     async operation_changed(operation_id, type)
     {
         const flow = this.flow_id(operation_id);
-        await this.flow_changed(this.flows[flow], type);
+        await this.flow_changed(this.flows[flow], type, operation_id);
     }
     
     async save_flow(flow)
@@ -176,65 +247,27 @@ module.exports = class memorystorage extends base  {
             const flow = this.flows[keys[k]];
             
             //find first not complected
-            const op = flow.operations.find(element => {
+            const ops = flow.operations.filter(element => {
                 return operation_is_runnable(element);
             });
 
-            if(undefined === op)
+            if(undefined === ops)
             {
                 continue;
             }
 
-            const join = flow.joinsparents[op.id];
+            for(let j = 0; j < ops.length; j++)
+            { 
+                const op = ops[j];
 
-            if(undefined === join) //we are not the son of a join
-            {
-                let process_operation = await operation_has_parent_completed(op, flow, this);                
+                const added = await evaluate_operation_lease(operations, no_more, flow, op, this);
 
-                if(process_operation)
-                {
-                    dbg('found op to run: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
-                    operations.push(op);
-                    if(operations.length >= no_more)
-                        return await this.lease_operations(operations);
-                }
+                if(operations.length >= no_more || added)
+                    break;
             }
-            else
-            {
-                let all_completed = true;
 
-                for(let idx = 0; idx < join.length; idx++)
-                {   
-                    const operation_dependency = await this.get_operation(join[idx]);
-                    if(!operation_dependency.completed)
-                    {
-                        all_completed = false;
-                        if(operation_is_runnable(operation_dependency))
-                        {
-
-                            let process_operation = await operation_has_parent_completed(operation_dependency, flow, this);                
-                            
-                            if(process_operation)
-                            {
-                                dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, operation_dependency, {children : null}), null, 4));
-                                operations.push(operation_dependency);
-                                if(operations.length >= no_more)
-                                    return await this.lease_operations(operations);
-                            }
-                        }
-                    }
-                }
-
-                if(all_completed)
-                {
-                    dbg('found op to run [all]: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
-                                
-                    //we get here all join parents are completed
-                    operations.push(op);
-                    if(operations.length >= no_more)
-                        return await this.lease_operations(operations);
-                }
-            }
+            if(operations.length >= no_more)
+                break;
 
         }
 

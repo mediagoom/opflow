@@ -99,7 +99,7 @@ describe('STORAGE',  () => {
                     operations = await flow_manager.load_operations(operations_batch);
                 }
 
-                expect(complete).to.be.eq(8);
+                expect(complete).to.be.eq(9);
 
             });
 

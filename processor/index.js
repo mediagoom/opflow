@@ -2,6 +2,8 @@ const EventEmitter = require('events');
 const os = require('os');
 const dbg    = require('debug')('opflow:processor');
 
+const createError = require('../error');
+
 let idx = 0;
 
 function computer_name()
@@ -48,7 +50,14 @@ class ProcessorBox {
         }
         ).catch( err => {
             this.completed = true;
-            this.result = this.err = err;
+            this.err = err;
+
+            let stack = '---';
+
+            if(err.stack != null)
+                stack = err.stack.toString();
+
+            this.result = createError(err.status, err.message, typeof err, {stack});
             
             this.completed_promise = processor.completed(operation.tag); 
         });

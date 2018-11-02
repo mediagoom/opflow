@@ -33,13 +33,44 @@ const simpleJoin = {
             , {
                 type: 'NULL'
                 , name: 'SECOND'
-                , children:[
-                    {type: 'JOIN', name: 'SingleJoin'}
-                ]
+                , children:[{
+                    type: 'NULL'
+                    , name: 'THIRD'
+                    , children:[
+                        {type: 'JOIN', name: 'SingleJoin'}
+                    ]}]
             }
         ]
     }
 };
+
+/*
+const simpleJoin = {
+    root: {
+        type : 'START'
+        , name : 'ROOT'
+        , children:[
+            {
+                type: 'NULL'
+                , name: 'FIRST'
+                , children:[
+                    {type: 'JOIN'
+                        , name: 'SingleJoin'
+                        , children:[{type: 'END'}]
+                    }
+                ]
+            }
+            , {
+                type: 'NULL'
+                , name: 'SECOND'
+                , children:[{
+                    type: 'JOIN', name: 'SingleJoin'
+                }]
+            }
+        ]
+    }
+};
+*/
 
 const simpleEcho = {
     root: {

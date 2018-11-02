@@ -191,9 +191,41 @@ describe('MISSING', () => {
             }
             
             expect( msg ).to.be.match(err);
-            
 
         });
 
+    });
+
+    describe('CONFIG', () => {
+
+        it('should create error', ()=>{
+
+            const createError = require('../error');
+
+            const err = createError(1, 'err msg', 'errorTestType', { m: 1});
+
+            expect(err.message).to.be.eq('err msg');
+
+        });
+
+        it('should config typeMap and path', ()=>{
+
+            
+            const tm = config.typeMap;
+            config.typeMap = tm;
+
+            expect(config.typeMap).to.be.eq(tm);
+
+
+            const orig_path = config.disk_storage_path;
+
+            const abs_path = '/disk';
+
+            config.disk_storage_path = abs_path;
+
+            expect(abs_path).to.be.eq(config.disk_storage_path);
+
+            config.disk_storage_path = orig_path;
+        });
     });
 });

@@ -85,7 +85,7 @@ class Config
      */
     set disk_storage_path(val)
     {
-        this.disk_storage_path = val;
+        this.data.disk_storage_path = val;
     }
 }
 
