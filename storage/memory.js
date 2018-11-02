@@ -47,14 +47,24 @@ function operation_is_runnable(element)
 
 async function operation_has_parent_completed(op, flow, mem)
 {
+
+    if(undefined === op)
+        throw 'Invalid operation for parent';
+
     let process_operation = false;
     const parent_id = flow.parents[op.id];
+
+    
                 
     if(
-        'START' == op.type
-                    && (undefined === parent_id) 
+        (undefined === parent_id) 
     )
-        process_operation = true;
+    {
+        if(op.type === 'START')
+            process_operation = true;
+        else
+            throw 'Invalid parent for ' + op.id;
+    }
     else
     {
         //is our parent completed
@@ -70,7 +80,10 @@ async function operation_has_parent_completed(op, flow, mem)
 
 function add_to_operations_if_not_there(op, operations)
 {
-    const e = operations.find((el) => {return el.id == op.id;});
+    let e = undefined;
+    
+    if(0 < op.length)
+        e = operations.find((el) => {return el.id == op.id;});
 
     if(undefined === e)
     {
@@ -104,22 +117,37 @@ async function evaluate_operation_lease(operations, no_more, flow, op, mem)
 
         for(let idx = 0; idx < join.length; idx++)
         {   
-            const operation_dependency = await mem.get_operation(join[idx]);
+            let operation_dependency = await mem.get_operation(join[idx]);
             if(!operation_dependency.completed)
             {
                 all_completed = false;
-                if(operation_is_runnable(operation_dependency))
+                
+                while(undefined !== operation_dependency)
                 {
-
-                    let process_operation = await operation_has_parent_completed(operation_dependency, flow, mem);                
-                            
-                    if(process_operation)
+                    if(operation_is_runnable(operation_dependency))
                     {
-                        dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, operation_dependency, {children : null}), null, 4));
-                        ret = add_to_operations_if_not_there(operation_dependency, operations);
-                        if(operations.length >= no_more)
-                            return ret;
+                        let process_operation = await operation_has_parent_completed(operation_dependency, flow, mem);                
+                            
+                        if(process_operation)
+                        {
+                            dbg('found op to run [join]: ', JSON.stringify(Object.assign({}, operation_dependency, {children : null}), null, 4));
+                            ret = add_to_operations_if_not_there(operation_dependency, operations);
+                            if(operations.length >= no_more)
+                                return ret;
+
+                            operation_dependency = undefined;
+                        }
+                        else
+                        {
+                            const parent_id = await mem.get_parent(operation_dependency);
+                            operation_dependency = await mem.get_operation(parent_id); 
+                        }
                     }
+                    else
+                    {
+                        operation_dependency = undefined;
+                    }
+                    
                 }
             }
         }
