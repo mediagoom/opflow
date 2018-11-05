@@ -18,7 +18,7 @@ const operation_default =  {
     ,'created': null
     ,'modified': null
     ,'propertyBag': null
-    ,'stoponerror' : true
+    ,'stop_on_error' : true
 };
 
 const type_def =  {
@@ -27,7 +27,9 @@ const type_def =  {
     , retries_interval: 300
     , lease: 3600
     , system: false
-    , process : async function() { throw new Error('operation processor not implemented'); }
+    , process : async function() { 
+        throw new Error('operation processor not implemented'); 
+    }
 
 };
 
@@ -49,10 +51,10 @@ let increment = 0;
 
 const STORAGEEVENT = Object.freeze({
     NEW:  'new'
-    , OPNEW: 'opnew'
     , ERROR:  'error'
     , MODIFIED: 'modified'
     , END : 'end'
+    , SUSPEND: 'suspend'
 });
 
 function pad(num, size) {
@@ -272,7 +274,9 @@ function construct_json_branch(root, flow)
         delete root.children;
 }
 
-
+/**
+ * This is the base class for Storage
+ */
 class base extends EventEmitter{
 
     constructor(typemap)

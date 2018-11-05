@@ -35,9 +35,11 @@ describe('PROCESSOR', () => {
         }
     };
 
-    const flow_manager= new flow(config.storage);
-    const coord = new coordinator(flow_manager, {});
-    const processor_name = 'test_processor';
+    const flow_manager    = new flow(config.storage);
+    flow_manager.max_retry_interval_seconds = 0.3;
+    
+    const obj_coordinator = new coordinator(flow_manager, {});
+    const processor_name  = 'test_processor';
 
     const flow_key = Object.keys(test_flows);
 
@@ -59,9 +61,9 @@ describe('PROCESSOR', () => {
             const first_flow = JSON.parse(JSON.stringify(test_flow)); 
             const flow_id = await flow_manager.save_flow(first_flow);
             
-            const propertyBag_checker = 'ahdodnthedhgaerehgfoaf';
+            const propertyBag_checker = 'obj_coordinator_long_string';
             
-            let op = await coord.get_work(processor_name, processor_work_id);
+            let op = await obj_coordinator.get_work(processor_name, processor_work_id);
             if(null != op){
                 expect(op.propertyBag).to.not.have.property('propertyBag_checker');
                 op.propertyBag.propertyBag_checker = propertyBag_checker;
@@ -89,9 +91,9 @@ describe('PROCESSOR', () => {
                     dbg('Operation Failed %s %j', op.tag, result.message);
                 }
                 
-                await coord.processed(op.tag, succeeded, result, op.propertyBag, processor_name, processor_work_id);           
+                await obj_coordinator.processed(op.tag, succeeded, result, op.propertyBag, processor_name, processor_work_id);           
 
-                op = await coord.get_work(processor_name, (++processor_work_id));
+                op = await obj_coordinator.get_work(processor_name, (++processor_work_id));
             }
 
             const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
@@ -111,7 +113,7 @@ describe('PROCESSOR', () => {
 
             const first_flow = JSON.parse(JSON.stringify(test_flow)); 
             const flow_id = await flow_manager.save_flow(first_flow);
-            const proc = new processor(coord, {polling_interval_seconds : 'disabled'});
+            const proc = new processor(obj_coordinator, {polling_interval_seconds : 'disabled'});
             let timed_out = false;
             const start = new Date();
             
@@ -132,7 +134,7 @@ describe('PROCESSOR', () => {
 
             dbg('polled', proc.queue_size(), proc.idx);//, Object.keys(proc.working));//, process._getActiveHandles(), process._getActiveRequests());
 
-            await coord.get_work(processor_name, (++processor_work_id));
+            await obj_coordinator.get_work(processor_name, (++processor_work_id));
 
             const json_flow = await flow_manager.get_hierarchical_flow(flow_id);
 
@@ -150,60 +152,16 @@ describe('PROCESSOR', () => {
     }
 
     it('should generate processor_name', () => {
-        const processor1 = new processor(coord);
-        const processor2 = new processor(coord);
+        const processor1 = new processor(obj_coordinator);
+        const processor2 = new processor(obj_coordinator);
 
         expect(processor2.configuration.processor_name).to.be.not.eq(processor1.configuration.processor_name);
     });
 
-    /*
-    it('should start and then stop', (done) => {
-        
-        const proc = new processor(coord, {polling_interval_seconds: 0.001});
-        const test_flow = JSON.parse(JSON.stringify(test_flows.simpleEcho.flow));
-
-        flow_manager.save_flow(test_flow).then(
-            (flow_id) => {
-
-                proc.start();
-
-                expect(proc.interval).to.be.not.null;
-
-                dbg('processor-started');
-
-                setTimeout(()=>{
-                    
-                    dbg('processor-check-run');
-
-                    flow_manager.is_flow_completed(flow_id).then(
-                        (val) => {
-                            
-                            proc.stop();
-                            expect(proc.interval).to.be.null;
-                            expect(val).to.be.true;
-                            done();
-
-                        }
-                    ).catch(
-                        (err) => {
-                            done(err);
-                        }
-                    );
-            
-                }, 250);
-            }
-        ).catch(
-            (err) => {done(err);}
-        );
-
-        
-        
-    });
-    */
-
+    
     it('should start and then stop', async () => {
             
-        const proc = new processor(coord, {polling_interval_seconds: 0.001});
+        const proc = new processor(obj_coordinator, {polling_interval_seconds: 0.001});
         const test_flow = JSON.parse(JSON.stringify(test_flows.simpleEcho.flow));
 
         const flow_id = await flow_manager.save_flow(test_flow);

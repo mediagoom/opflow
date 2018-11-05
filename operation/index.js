@@ -1,7 +1,9 @@
 //const dbg    = require('debug')('opflow:operations');
 const EventEmitter = require('events');
 
-/**  */
+/** 
+ * flow_manager is the opflow Storage Manager
+ */
 class flow_manager extends EventEmitter
 {
     constructor(operation_storage)
@@ -9,6 +11,10 @@ class flow_manager extends EventEmitter
         super();
         this.storage = operation_storage;
         this.storage.on(this.storage.events.END, (flow_id) => { this.emit(this.storage.events.END, flow_id);} );
+        this.storage.on(this.storage.events.SUSPEND, (flow_id, operation_id) => { 
+            this.emit(this.storage.events.SUSPEND, flow_id, operation_id);
+        });
+        this.max_retry_interval_seconds = 0;
     }    
 
     async save_flow(flow)
@@ -59,8 +65,17 @@ class flow_manager extends EventEmitter
         else
         {
             const type = await this.storage.get_type(operation.type);
+
+            let seconds = type.retries_interval;
+
+            if(0 < this.max_retry_interval_seconds)
+            {
+                if(seconds > this.max_retry_interval_seconds)
+                    seconds = this.max_retry_interval_seconds;
+            }
+
             let time = new Date();
-            time.setSeconds(time.getSeconds() + type.retries_interval);
+            time.setSeconds(time.getSeconds() + seconds);
             await this.storage.set_operation_asOf(operation, time);
         }
 

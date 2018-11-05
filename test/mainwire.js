@@ -5,6 +5,8 @@ const flows  = require('./flows');
 const config = require('../config');
 const test   = require('./test-util');
 
+opflow.configure({storage : {max_retry_interval_seconds : 0.001}, processor : {polling_interval_seconds : 0.001 }});
+
 const expect = chai.expect;
 
 
@@ -15,22 +17,28 @@ describe('WIRE', () => {
     it('should start, run and then stop', async () => {
          
         const test_flow = JSON.parse(JSON.stringify(flows.simpleEcho));
-
-        opflow.configure({processor : {polling_interval_seconds : 0.001}});
-
+        const error_flow = JSON.parse(JSON.stringify(flows.errorFlow));
+       
         opflow.start();
 
         let event_end = false;
+        let event_error = false;
 
         opflow.on('end', (flow_id)=>{ 
             dbg('opflow-end', flow_id);
             event_end = true; }
         );
+
+        opflow.on('suspend', (flow_id)=>{ 
+            dbg('opflow-error', flow_id);
+            event_error = true; }
+        );
         
+        const err_id  = await opflow.add_flow(error_flow); 
         const flow_id = await opflow.add_flow(test_flow);
+       
 
-
-        dbg('processor-started', flow_id);
+        dbg('processor-started', flow_id, err_id);
 
         while(! await opflow.is_flow_completed(flow_id) )
         {
@@ -57,7 +65,8 @@ describe('WIRE', () => {
 
         expect(h.root.type).to.be.eq('START');
 
-        expect(event_end).to.be.true
+        expect(event_end).to.be.true;
+        expect(event_error).to.be.eq(true, 'missing error event');
 
     });
 });

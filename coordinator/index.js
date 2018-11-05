@@ -158,6 +158,9 @@ class coordinator extends EventEmitter
         this.loading = false;
 
         this.flow.on('end', (flow_id) => {this.emit('end', flow_id);});
+        this.flow.on('suspend', (flow_id, operation_id) => {
+            this.emit('suspend', flow_id, operation_id);
+        });
     }
 
     async load_operations(ctx)
