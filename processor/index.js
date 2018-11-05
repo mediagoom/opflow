@@ -92,7 +92,7 @@ module.exports = class Processor extends EventEmitter{
             throw new Error('Invalid Completed tag ' + tag);
         }
                     
-        dbg('OPERATION COMPLETED', box.operation.tag, Object.keys(this.running));
+        dbg('OPERATION COMPLETED', box.operation.tag, box.succeeded, '[', box.operation.name, ']', Object.keys(this.running));
                     
         await this.coordinator.processed(box.operation.tag
             , box.succeeded
@@ -132,7 +132,7 @@ module.exports = class Processor extends EventEmitter{
                 if(null == op)
                     return pushed;
                 
-                dbg('RUNNING OPERATION ', op.tag, Object.keys(this.running));
+                dbg('RUNNING OPERATION ', op.tag, '[', op.name, ']', Object.keys(this.running));
                 this.running[op.tag] = new ProcessorBox(op, idx, this);
                 pushed = true;
 
@@ -167,7 +167,7 @@ module.exports = class Processor extends EventEmitter{
         if(!isNaN(this.configuration.polling_interval_seconds))
         {
             this.interval = setInterval(() => {
-                /*let promise =*/ this.poll(); 
+                this.poll().then((polled)=>{dbg('polled', polled, this.queue_size());}).catch((e)=>{dbg('polled error', e.message, e.stack);});
             }
             , (this.configuration.polling_interval_seconds * 1000));
 

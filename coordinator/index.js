@@ -219,6 +219,7 @@ class coordinator extends EventEmitter
                 path : operation.external_type
                 , config: operation.config
                 , tag: operation.id
+                , name: operation.name
                 , propertyBag: JSON.parse(JSON.stringify(operation.propertyBag))
             };
 
@@ -252,7 +253,7 @@ class coordinator extends EventEmitter
 
             operation.executed = true;
 
-            dbg('COMPLETED ', tag);
+            dbg('COMPLETED ', tag, operation.name, succeeded, result);
 
             if(!succeeded)
                 await this.flow.register_failure(operation, result);

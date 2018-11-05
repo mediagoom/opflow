@@ -1,6 +1,6 @@
 const cp       = require('child_process');
 const path     = require('path');
-//const dbg      = require('debug')('opflow:execute');
+const dbg      = require('debug')('opflow:execute');
 //const verbose  = require('debug')('opflow:execute-verbose');
 const os       = require('os');
 
@@ -8,31 +8,32 @@ const os       = require('os');
 async function Spawn(cmd, args, options)
 {
     return new Promise( ( resolve, reject) => {
-
-        let resolved = false;
-
+       
         let output = { console : [], err : [] };
 
-        let child = cp.spawn( cmd , args, options 
-            /*, {                           
-                stdio: [ 'ignore', outs, errs ]
-                , cwd: process.cwd()
-            
-            }*/);
+        let child = cp.spawn( cmd , args, options);
+
+        child.resolved = false;
         
         child.on('error', (err) => { 
-            resolved = true; 
+            child.resolved = true; 
             reject(err); 
         });
         
         child.on('close', (code, signal) => { 
-            resolved = true;
-            resolve( {code, signal, output } );
+            if(!child.resolved)
+            {
+                child.resolved = true;
+                resolve( {code, signal, output } );
+            }
         } );
 
         child.on('exit', (code, signal) => { 
-            if(!resolved)
+            if(!child.resolved)
+            {
+                child.resolved = true;
                 resolve( {code, signal, output } );
+            }
         }); 
 
         child.stdout.on('data', (data) => {
@@ -91,18 +92,30 @@ module.exports = {
             options.env.PATH = config.PATH + path.delimiter + process.env.PATH;
         }
 
+        if(undefined === options.cwd)
+            options.cwd = process.cwd();
+
         if(undefined !== config.cmd)
         {
+            dbg('SPAWN %s %O %O', config.cmd, config.args, options);
+
             const result = await Spawn(config.cmd, config.args, options);
             
             propertyBag.execute = result;
+
+            dbg('EXECUTED %O', result);
             
             if(result.code != expected_code)
             {
                 throw 'Invalid code found ' + result.code;
             }
             
-            return result.output.console.join(os.EOL);
+            let ret = result.output.console.join(os.EOL);
+
+            if(true === config.include_err)
+                ret += result.output.err.join(os.EOL); 
+
+            return ret;
             
         }
         else
