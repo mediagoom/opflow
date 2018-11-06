@@ -341,8 +341,9 @@ module.exports = class diskStorage extends memory  {
 
         if(undefined === operations)
             return undefined;
-
-        return this.storage_flow_to_json_flow(operations);
+        const ops = JSON.parse(JSON.stringify(operations));
+        return this.storage_flow_to_json_flow(ops);
+        
     }
      
     
