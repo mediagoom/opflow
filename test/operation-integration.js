@@ -9,6 +9,8 @@ describe('TEST OPERATIONS', () => {
 
     const execute = require('../operation/user/execute');
     const code    = require('../operation/user/code');
+    const write   = require('../operation/user/write-file');
+    const read    = require('../operation/user/read-file');
 
     if('win32' === os.platform())
     {
@@ -85,7 +87,6 @@ describe('TEST OPERATIONS', () => {
         });
     }
 
-
     it('code throw', async () => {
         
         const propertyBag = {};
@@ -110,6 +111,24 @@ describe('TEST OPERATIONS', () => {
 
         expect(thrown).to.be.eq(true, 'code did not thrown');
         expect(msg).to.be.eq('this is an error');
+    });
+
+    it('write and read file', async () => {
+       
+        const content = `this is a test line
+            in a test content`;
+
+        const path = '/tmp/read-write-file';
+
+        const propertyBag = {};
+            
+        const config = {path, content};
+        
+        await write.process(config, propertyBag);
+        const out_content = await read.process(config, propertyBag);
+
+        expect(out_content).to.be.eq(content);
+        
     });
    
 });
