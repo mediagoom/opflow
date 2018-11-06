@@ -59,7 +59,7 @@ async function operation_has_parent_completed(op, flow, mem)
         if(op.type === 'START')
             process_operation = true;
         else
-            throw 'Invalid parent for ' + op.id;
+            throw new Error('Invalid parent for ' + op.name + '.' + op.id + ' -> ', JSON.stringify(op, null, 4));
     }
     else
     {
@@ -426,7 +426,9 @@ module.exports = class memorystorage extends base  {
         if(undefined === flow)
             return undefined;
 
-        return this.storage_flow_to_json_flow(flow.operations);
+        const ops = JSON.parse(JSON.stringify(flow.operations));
+
+        return this.storage_flow_to_json_flow(ops);
     }
 
     async get_storage_flow(flow_id)

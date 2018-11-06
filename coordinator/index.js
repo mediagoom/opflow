@@ -228,7 +228,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error(err.message, JSON.stringify(err, null, 4));
+            console.error('COORDINATOR GET_WORK ERROR', err.message, JSON.stringify(err, null, 4));
             throw err;
         }
     }
@@ -270,7 +270,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error(err.message, JSON.stringify(err, null, 4));
+            console.error('COORDINATOR PROCESSED ERROR', err.message, JSON.stringify(err, null, 4));
             throw err;
         }
     }

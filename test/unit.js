@@ -17,6 +17,9 @@ describe('UNIT-TEST TESTING', () => {
     {
         const key = keys[idx];
 
+        if(key.includes('error'))
+            continue;
+
         it('should run unit test for flow ' + key , async () => {
             
             const operations = await unitTest(flows[key]);

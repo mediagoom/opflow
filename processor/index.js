@@ -141,7 +141,7 @@ module.exports = class Processor extends EventEmitter{
 
         }catch(err)
         {
-            console.error(err.message, err.stack);
+            console.error('PROCESSOR POLL ERROR', err.message, err.stack);
             throw err;
         }
 

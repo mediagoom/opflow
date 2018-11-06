@@ -202,7 +202,7 @@ module.exports = class diskStorage extends memory  {
 
         }catch(err)
         {
-            console.warn('invalid json in file ' + flow_id);
+            console.warn('DISK LOAD_STORAGE_FROM_FILE', 'invalid json in file ' + flow_id);
             return undefined;
         }
 
@@ -241,7 +241,7 @@ module.exports = class diskStorage extends memory  {
 
         }catch(err)
         {
-            console.warn('invalid json in file ' + flow_id);
+            console.warn('DISK LOAD_STORAGE_FROM_FILE_SYNC', 'invalid json in file ' + flow_id);
             return undefined;
         }
     }

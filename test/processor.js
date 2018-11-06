@@ -10,7 +10,7 @@ const processor = require('../processor');
 const expect = chai.expect;
 
 process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    console.log('PROCESSOR TEST', 'Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
 describe('PROCESSOR', () => {
@@ -32,6 +32,11 @@ describe('PROCESSOR', () => {
             'flow' : flows.basicFlow
             , 'user_operations' : 0
             , 'complete' : true 
+        }
+        , 'errorFlow' : {
+            'flow' : flows.errorFlow
+            , 'user_operations' : 1
+            , 'complete' : false
         }
     };
 
