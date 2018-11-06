@@ -155,13 +155,14 @@ async function evaluate_operation_lease(operations, no_more, flow, op, mem)
             }
             else
             {
-                all_completed = operation_dependency.succeeded;
+                if(true !== operation_dependency.succeeded)
+                    all_completed = false;
             }
         }
 
         if(all_completed)
         {
-            dbg('found op to run [all]: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+            dbg('found op to run [all]: ', join, JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
                                 
             //we get here all join parents are completed
             ret = add_to_operations_if_not_there(op, operations);

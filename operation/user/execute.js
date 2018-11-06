@@ -1,9 +1,26 @@
+const assert   = require('assert');//.strict;
 const cp       = require('child_process');
 const path     = require('path');
 const dbg      = require('debug')('opflow:execute');
 //const verbose  = require('debug')('opflow:execute-verbose');
 const os       = require('os');
 
+async function Exec(exec, options)
+{
+    return new Promise( ( resolve, reject) => {
+        
+        cp.exec(exec, options, (err, stdout, stderr) => {
+            if(null != err)
+            {
+                reject(err);
+            }
+            else
+            {
+                resolve({stdout, stderr});
+            }
+        });
+    });
+}
 
 async function Spawn(cmd, args, options)
 {
@@ -95,6 +112,8 @@ module.exports = {
         if(undefined === options.cwd)
             options.cwd = process.cwd();
 
+        assert(undefined !== config.cmd || undefined !== config.exec);
+
         if(undefined !== config.cmd)
         {
             dbg('SPAWN %s %O %O', config.cmd, config.args, options);
@@ -107,9 +126,9 @@ module.exports = {
             
             if(result.code != expected_code)
             {
-                throw 'Invalid code found ' + result.code;
+                throw new Error('Invalid code found ' + result.code);
             }
-            
+           
             let ret = result.output.console.join(os.EOL);
 
             if(true === config.include_err)
@@ -120,12 +139,19 @@ module.exports = {
         }
         else
         {
-            if(undefined === config.exec)
-            {
-                throw 'EITHER CMD OR EXEC';
-            }
+            dbg('EXEC %s %O', config.exec, options);
 
-            throw 'NOT IMPLEMENTED';
+            const res = await Exec(config.exec, options);  
+            
+            propertyBag.exec = res;
+
+            let ret = res.stdout;
+
+            if(true === config.include_err)
+                ret += res.stderr;
+
+            return ret;
+            
         }
     }
 
