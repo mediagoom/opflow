@@ -1,6 +1,8 @@
 const EventEmitter = require('events');
 const dbg          = require('debug')('opflow:coordinator');
+const assert       = require('assert');//.strict;
 
+/*
 class coordinatorError extends Error
 {
     constructor(msg)
@@ -9,6 +11,7 @@ class coordinatorError extends Error
 
     }
 }
+*/
 
 const config_defaults = {
     op_batch : 3
@@ -58,17 +61,14 @@ async function load_and_process_system(op_to_do, flow, batch)
         {
             if(Array.isArray(operation_parent))
             {
-                /* istanbul ignore if */
-                if('JOIN' !== op.type)
-                {
-                    throw new coordinatorError('Parent array for not join ' + op.id);
-                } 
-
+                assert('JOIN' === op.type, 'Parent array for not join ' + op.id);
                 op.propertyBag = {};
             }
             else
             {
                 operation_parent = await flow.get_operation(operation_parent);
+                assert(operation_parent.completed && operation_parent.succeeded);
+
                 op.propertyBag = operation_parent.propertyBag;
                 op.propertyBag.parent = {};
                 op.propertyBag.original = {};
@@ -109,11 +109,7 @@ async function load_and_process_system(op_to_do, flow, batch)
         }
         else
         {
-            /* istanbul ignore if */
-            if('START' !== op.type)
-            {
-                throw new coordinatorError('Missing Parent for not a START ' + op.id); 
-            }
+            assert('START' === op.type, 'Missing Parent for not a START ' + op.id); 
         }
 
         op_to_do = op_to_do.slice(1);
@@ -123,13 +119,16 @@ async function load_and_process_system(op_to_do, flow, batch)
         if(system)
         {
             try{
+
                 dbg('PROCESS SYSTEM OPERATION', op.id, op.type, op.name);
                 const result = await flow.process_system_operation(op);
                 await flow.register_success(op, result);
 
             }catch(e)
             {
-                await flow.register_failure(op, 'SYSTEM OPERATION FAILURE ' + e.message + ' ' + e.stack);
+                const msg = 'SYSTEM OPERATION FAILURE ' + e.message + ' ' + e.stack; 
+                await flow.register_failure(op, msg);
+                dbg(msg);
             }
         }
         else
@@ -158,6 +157,9 @@ class coordinator extends EventEmitter
         this.loading = false;
 
         this.flow.on('end', (flow_id) => {this.emit('end', flow_id);});
+        this.flow.on('suspend', (flow_id, operation_id) => {
+            this.emit('suspend', flow_id, operation_id);
+        });
     }
 
     async load_operations(ctx)
@@ -225,7 +227,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error(err.message, JSON.stringify(err, null, 4));
+            console.error('COORDINATOR GET_WORK ERROR', err.message, JSON.stringify(err, null, 4));
             throw err;
         }
     }
@@ -267,7 +269,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error(err.message, JSON.stringify(err, null, 4));
+            console.error('COORDINATOR PROCESSED ERROR', err.message, JSON.stringify(err, null, 4));
             throw err;
         }
     }

@@ -46,3 +46,4 @@ coverage.lcov
 coverage/
 .nyc_output/
 disk/
+.doc/

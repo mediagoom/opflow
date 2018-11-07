@@ -1,5 +1,5 @@
 const base = require('./base');
-const dbg  = require('debug')('opflow:memorystorage');
+const dbg  = require('debug')('opflow:memory-storage');
 
 const OPERATION_CHANGE = Object.freeze({
     START : 'START'
@@ -59,15 +59,15 @@ async function operation_has_parent_completed(op, flow, mem)
         if(op.type === 'START')
             process_operation = true;
         else
-            throw 'Invalid parent for ' + op.id;
+            throw new Error('Invalid parent for ' + op.name + '.' + op.id + ' -> ', JSON.stringify(op, null, 4));
     }
     else
     {
         //is our parent completed
         const operation_dependency = await mem.get_operation(parent_id);
-        if(true === operation_dependency.completed && true === operation_dependency.succeeded)
+        if(true === operation_dependency.completed)
         {
-            process_operation = true;
+            process_operation = operation_dependency.succeeded;
         }
     }
 
@@ -153,11 +153,16 @@ async function evaluate_operation_lease(operations, no_more, flow, op, mem)
                     
                 }
             }
+            else
+            {
+                if(true !== operation_dependency.succeeded)
+                    all_completed = false;
+            }
         }
 
         if(all_completed)
         {
-            dbg('found op to run [all]: ', JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
+            dbg('found op to run [all]: ', join, JSON.stringify(Object.assign({}, op, {children : null}), null, 4));
                                 
             //we get here all join parents are completed
             ret = add_to_operations_if_not_there(op, operations);
@@ -188,7 +193,7 @@ module.exports = class memorystorage extends base  {
 
     async flow_changed(flow, type, operation_id)
     {
-        dbg('flow changed', flow.flow.id, type, operation_id);
+        dbg('flow changed', flow.flow.id, type, operation_id, arguments[2]);
     }
 
     async discard_flow(flow_id)
@@ -211,6 +216,11 @@ module.exports = class memorystorage extends base  {
     {
         const flow = this.flow_id(operation_id);
         await this.flow_changed(this.flows[flow], type, operation_id);
+
+        if(type === OPERATION_CHANGE.COMPLETE && arguments[2] === false)
+        {
+            this.emit(this.events.SUSPEND, flow, operation_id);
+        }
     }
     
     async save_flow(flow)
@@ -327,14 +337,21 @@ module.exports = class memorystorage extends base  {
         if(op.completed)
             base.throw_storage_error('OPERATIONS ALREADY COMPLETED ' + op.id);
 
-        dbg('COMPLETED [%s] %s -> %s', op.name, op.type, op.id);
         op.succeeded = success;
         op.completed = true;
         op.modified = new Date();
 
+        if(!op.succeeded && (false === op.stop_on_error))
+        {
+            op.succeeded = true;
+            op.executed = false;
+        }
+
+        dbg('COMPLETED [%s] %s -> %s', op.name, op.type, op.id, op.succeeded);
+
         operation.lease_time = null;
 
-        await this.operation_changed(operation.id, OPERATION_CHANGE.COMPLETE);
+        await this.operation_changed(operation.id, OPERATION_CHANGE.COMPLETE, op.succeeded);
 
         if('END' === operation.type && op.succeeded)
         {
@@ -410,7 +427,9 @@ module.exports = class memorystorage extends base  {
         if(undefined === flow)
             return undefined;
 
-        return this.storage_flow_to_json_flow(flow.operations);
+        const ops = JSON.parse(JSON.stringify(flow.operations));
+
+        return this.storage_flow_to_json_flow(ops);
     }
 
     async get_storage_flow(flow_id)

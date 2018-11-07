@@ -1,4 +1,4 @@
-
+const assert = require('assert');//.strict;
 
 module.exports = 
 {
@@ -9,16 +9,16 @@ module.exports =
     {
         let operation_parent = await flow.get_parent(operation);
 
-        /* istanbul ignore if */
-        if(!Array.isArray(operation_parent))
-        {
-            throw new Error('JOIN OPERATION WITHOUT A PARENT ARRAY');
-        }
-
+        assert(Array.isArray(operation_parent), 'JOIN OPERATION WITHOUT A PARENT ARRAY');
+        
         for(let idx = 0; idx < operation_parent.length; idx++)
         {
             const opo = await flow.get_operation(operation_parent[idx]);
 
+            assert(opo.succeeded);assert(opo.completed);
+            assert(undefined !== opo && null !== opo, 'Cannot get operation for ' + operation_parent[idx]);
+            assert(undefined !== opo.propertyBag && null !== opo.propertyBag, 'Cannot get propertyBag for ' + operation_parent[idx]);
+            
             let keys = Object.keys(opo.propertyBag);
 
             for(let j = 0; j < keys.length; j++)
@@ -44,8 +44,6 @@ module.exports =
                     {
                         propertyBag[k].push(opo.propertyBag[k]);
                     }
-
-                    
                     
                 }
                 

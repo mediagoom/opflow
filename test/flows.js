@@ -215,9 +215,31 @@ const basicCode = {
     }
 };
 
+const errorFlow = {
+    root: {
+        type : 'START', name : 'ROOT'
+        , children:[
+            { type : 'error', name : 'user-error' 
+                , children : [ 
+                    {type: 'JOIN', name : 'ERROR-JOIN'
+                        , children : [
+                            {type: 'END'}
+                        ]
+                    }
+                ]}
+            , { type : 'ERROR', name : 'system-error' 
+                , children : [ 
+                    {type: 'JOIN', name : 'ERROR-JOIN'}
+                ]}
+        ]
+    } 
+};
+
+
 module.exports = {
     basicFlow
     , simpleJoin
     , simpleEcho
     , basicCode
+    , errorFlow
 };

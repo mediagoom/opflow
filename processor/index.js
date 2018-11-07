@@ -25,6 +25,13 @@ const config_defaults = {
     , processor_name : null 
 };
 
+function poll(processor)
+{
+    processor.poll()
+        .then((polled)=>{dbg('polled', polled, processor.queue_size(), new Date());})
+        .catch((e)=>{dbg('polled error', e.message, e.stack);});
+}
+
 class ProcessorBox {
 
     constructor(operation, idx, processor)
@@ -103,7 +110,9 @@ module.exports = class Processor extends EventEmitter{
         );
 
         //let poll right now
-        await this.poll();
+        setImmediate(()=>{poll(this);});
+        
+        //await this.poll();
 
         delete this.running[tag];
 
@@ -141,7 +150,7 @@ module.exports = class Processor extends EventEmitter{
 
         }catch(err)
         {
-            console.error(err.message, err.stack);
+            console.error('PROCESSOR POLL ERROR', err.message, err.stack);
             throw err;
         }
 
@@ -167,7 +176,7 @@ module.exports = class Processor extends EventEmitter{
         if(!isNaN(this.configuration.polling_interval_seconds))
         {
             this.interval = setInterval(() => {
-                this.poll().then((polled)=>{dbg('polled', polled, this.queue_size());}).catch((e)=>{dbg('polled error', e.message, e.stack);});
+                poll(this);
             }
             , (this.configuration.polling_interval_seconds * 1000));
 

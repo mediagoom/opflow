@@ -4,6 +4,7 @@ const flow_manager = require('./operation').flow_manager;
 const coordinator  = require('./coordinator');
 const processor    = require('./processor');
 const EventEmitter = require('events');
+const util         = require('./util');
 
 function initialize_all(wire, create_processor)
 {
@@ -11,6 +12,12 @@ function initialize_all(wire, create_processor)
     {
         dbg('create flow_manager', wire.configuration.storage);
         wire.flow_manager = new flow_manager(config.storage);
+
+        if(undefined !== wire.configuration.storage.max_retry_interval_seconds 
+            && 0 < wire.configuration.storage.max_retry_interval_seconds )
+        {
+            wire.flow_manager.max_retry_interval_seconds = wire.configuration.storage.max_retry_interval_seconds;
+        }
     }
 
     if(null === wire.coordinator)
@@ -18,7 +25,10 @@ function initialize_all(wire, create_processor)
         dbg('create coordinator', wire.configuration.coordinator);
         wire.coordinator = new coordinator(wire.flow_manager, wire.configuration.coordinator);
 
-        wire.coordinator.on('end', (flow_id)=> { wire.emit('end', flow_id); });
+        wire.coordinator.on('end', (flow_id) => { wire.emit('end', flow_id); });
+        wire.coordinator.on('suspend', (flow_id, operation_id) => { 
+            wire.emit('suspend', flow_id, operation_id); 
+        });
     }
 
     if(null === wire.processor && true === create_processor)
@@ -28,6 +38,9 @@ function initialize_all(wire, create_processor)
     }
 }
 
+/**
+ * 
+ */
 class Wire extends EventEmitter  {
 
     constructor()
@@ -38,6 +51,10 @@ class Wire extends EventEmitter  {
         this.coordinator = null;
         this.processor = null;
     }
+    /**
+     * Return the util opflow module
+     */
+    get util(){return util;}
     /**
      * Start the processor
      */

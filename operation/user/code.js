@@ -12,7 +12,6 @@ module.exports = {
         const vm = require('vm');
 
         try{
-
         
             let result = vm.runInNewContext(config.code, {config: config, propertyBag: propertyBag, dbg, require});
             return result;

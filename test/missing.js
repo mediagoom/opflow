@@ -92,7 +92,7 @@ describe('MISSING', () => {
         it('error operation should throw ', async () => {
             const storage = config.storage;
 
-            const type = await storage.get_type('../operation/user/error');
+            const type = await storage.get_type('ERROR');
             const err = 'operation processor not implemented';
             let msg = 'x';
 

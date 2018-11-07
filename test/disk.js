@@ -15,7 +15,10 @@ const disk_path_memory = '../storage/memory';
 
 describe('DISK', () => {
 
-    after(() => {config.storage = null;});
+    after(() => {
+        config.storage = null;
+        config.data.storage = disk_path_memory;
+    });
     
     it('should save and reload', async () => {
         

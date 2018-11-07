@@ -16,6 +16,9 @@ const processor_map = {
         'execute' : '../operation/user/execute'
         , 'echo' : '../operation/user/echo'
         , 'code' : '../operation/user/code'
+        , 'error' : '../operation/user/error'
+        , 'write-file' : '../operation/user/write-file'
+        , 'read-file' : '../operation/user/read-file'
     }
 };
 

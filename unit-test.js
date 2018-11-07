@@ -1,8 +1,10 @@
 
-const test = require('./test/test-util');
+const test = require('./util');
 const opflow = require('./index.js');
 
 const createError = require('./error');
+
+opflow.configure({processor : {polling_interval_seconds : 0.001}});
 
 module.exports = async function(flow, timeout_ms)
 {
@@ -12,18 +14,17 @@ module.exports = async function(flow, timeout_ms)
     {
         timeout_ms = 1000;
     }
-
-    opflow.configure({processor : {polling_interval_seconds : 0.001}});
-
+           
     const flow_id = await opflow.add_flow(json_flow);
-
+    
     opflow.start();
 
     //dbg('processor-started');
 
     const start = new Date();
 
-    while(! await opflow.is_flow_completed(flow_id) )
+    while( (! await opflow.is_flow_completed(flow_id) )
+    )
     {
         const now = new Date();
 
@@ -46,10 +47,9 @@ module.exports = async function(flow, timeout_ms)
 
             throw createError(2, msg, 'timeoutError', props);
 
-
         }
 
-        await test.Wait(10);
+        await test.Wait(3);
     }                    
         
     opflow.stop();
