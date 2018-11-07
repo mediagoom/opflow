@@ -18,6 +18,14 @@ install:
   - npm install --only=dev
   - npm install mocha-appveyor-reporter coveralls
   - npm install -g jsdoc
+  - ps: |
+    if ($isWindows) {
+     if(-Not (test-path '/tmp'))
+     {
+       mkdir '/tmp';
+     }
+    }
+
 
 build: off
 
