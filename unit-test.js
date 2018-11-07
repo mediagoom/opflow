@@ -1,5 +1,5 @@
 
-const test = require('./test/test-util');
+const test = require('./util');
 const opflow = require('./index.js');
 
 const createError = require('./error');

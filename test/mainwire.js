@@ -3,7 +3,6 @@ const opflow = require('../index');
 const dbg    = require('debug')('opflow:wire-test');
 const flows  = require('./flows');
 const config = require('../config');
-const test   = require('./test-util');
 
 opflow.configure({storage : {max_retry_interval_seconds : 0.001}, processor : {polling_interval_seconds : 0.001 }});
 
@@ -42,14 +41,14 @@ describe('WIRE', () => {
 
         while(! await opflow.is_flow_completed(flow_id) )
         {
-            await test.Wait(10);
+            await opflow.util.Wait(10);
         }                    
        
         const already_running = !opflow.start();
 
         let count = 0;
         while(!event_end && 10 > count++)
-            await test.Wait(10);
+            await opflow.util.Wait(10);
 
         expect(already_running).to.be.true;
         

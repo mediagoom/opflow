@@ -3,7 +3,7 @@ const config = require('../config');
 const dbg    = require('debug')('opflow:processor-test');
 const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
-const test  = require('./test-util');
+const test  = require('../util');
 const coordinator = require('../coordinator');
 const processor = require('../processor');
 

@@ -4,6 +4,7 @@ const flow_manager = require('./operation').flow_manager;
 const coordinator  = require('./coordinator');
 const processor    = require('./processor');
 const EventEmitter = require('events');
+const util         = require('./util');
 
 function initialize_all(wire, create_processor)
 {
@@ -50,6 +51,10 @@ class Wire extends EventEmitter  {
         this.coordinator = null;
         this.processor = null;
     }
+    /**
+     * Return the util opflow module
+     */
+    get util(){return util;}
     /**
      * Start the processor
      */
