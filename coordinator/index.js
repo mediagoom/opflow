@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const dbg          = require('debug')('opflow:coordinator');
 const assert       = require('assert');//.strict;
+const createError  = require('../error');
 
 /*
 class coordinatorError extends Error
@@ -15,6 +16,7 @@ class coordinatorError extends Error
 
 const config_defaults = {
     op_batch : 3
+    , error_recorder : console.error
 };
 
 function print_todo(ctx, op_to_do)
@@ -227,7 +229,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error('COORDINATOR GET_WORK ERROR', err.message, JSON.stringify(err, null, 4));
+            this.configuration.error_recorder('COORDINATOR GET_WORK ERROR', err.message, err.stack);
             throw err;
         }
     }
@@ -250,7 +252,7 @@ class coordinator extends EventEmitter
             if(w.processor_name != processor_name ||
                 w.processor_work_id != processor_work_id)
             {
-                throw 'invalid processor';
+                throw createError(0, 'invalid processor', 'coordinator_processed_Error', {});
             }
 
             operation.executed = true;
@@ -269,7 +271,7 @@ class coordinator extends EventEmitter
 
         }catch(err)
         {
-            console.error('COORDINATOR PROCESSED ERROR', err.message, JSON.stringify(err, null, 4));
+            this.configuration.error_recorder('COORDINATOR PROCESSED ERROR', err.message, err.stack);
             throw err;
         }
     }

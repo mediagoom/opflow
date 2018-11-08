@@ -118,7 +118,7 @@ describe('MISSING', () => {
 
             const storage = await config.change_storage(storage_name);
 
-            const err = 'invalid flow name invalid_name';
+            const err = 'invalid flow id invalid_name';
             let msg = 'x';
 
             try{

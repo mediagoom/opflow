@@ -1,5 +1,6 @@
-const base = require('./base');
-const dbg  = require('debug')('opflow:memory-storage');
+const base   = require('./base');
+const dbg    = require('debug')('opflow:memory-storage');
+const assert = require('assert');//.strict;
 
 const OPERATION_CHANGE = Object.freeze({
     START : 'START'
@@ -260,13 +261,12 @@ module.exports = class memorystorage extends base  {
     }
 
     async is_flow_completed(flow_id)
-    {
+    { 
+        assert(flow_id);
+
         const flow = this.flows[flow_id];
 
-        if(undefined === flow)
-        {
-            base.throw_storage_error('invalid flow name ' + flow_id);
-        }
+        assert(flow !== undefined, 'invalid flow id ' + flow_id);
 
         const op = flow.operations.find( el => {return !el.completed;});
 
