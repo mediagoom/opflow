@@ -281,6 +281,4 @@ class coordinator extends EventEmitter
         return this.flow.get_hierarchical_flow(flow_id); 
     }
 }
-
-
 module.exports = coordinator;

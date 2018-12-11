@@ -202,6 +202,14 @@ module.exports = class memorystorage extends base  {
         delete this.flows[flow_id];
     }
 
+    async flow_suspended(operation_id)
+    {
+        const flow_id = this.flow_id(operation_id);
+        dbg('flow suspended', this.flows[flow_id].flow.id);
+
+        this.emit(this.events.SUSPEND, this.flows[flow_id], operation_id);
+    }
+
     async flow_ended(operation_id)
     {
         const flow_id = this.flow_id(operation_id);
@@ -213,14 +221,14 @@ module.exports = class memorystorage extends base  {
         
     }
 
-    async operation_changed(operation_id, type)
+    async operation_changed(operation_id, type, succeeded)
     {
         const flow = this.flow_id(operation_id);
         await this.flow_changed(this.flows[flow], type, operation_id);
 
-        if(type === OPERATION_CHANGE.COMPLETE && arguments[2] === false)
+        if(type === OPERATION_CHANGE.COMPLETE && succeeded === false)
         {
-            this.emit(this.events.SUSPEND, flow, operation_id);
+            await this.flow_suspended(operation_id);
         }
     }
     
@@ -399,10 +407,17 @@ module.exports = class memorystorage extends base  {
         op.succeeded = false;
         op.completed = false;
         op.executed  = false;
-        op.lease_time = undefined;
+        op.lease_time = null;
+        op.history = null;
         op.modified = new Date();
 
         return this.operation_changed(op.id, OPERATION_CHANGE.RESET);
+    }
+
+    async redo(op_id)
+    {
+        const operation = await this.get_operation(op_id);
+        return this.reset_op(operation);
     }
 
     async get_parent(operation)

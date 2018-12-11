@@ -1,7 +1,7 @@
 /* global describe it */
 const chai   = require('chai');
 const config = require('../config');
-const dbg    = require('debug')('opflow:storageTest');
+const dbg    = require('debug')('opflow:storage-test');
 //const operation = require('../operation').OperationManager;
 const flow  = require('../operation').flow_manager;
 const flows = require('./flows');
@@ -21,7 +21,7 @@ describe('STORAGE',  () => {
 
     for(let idx = 0; idx < storages.length; idx++)
     {    
-        describe(storages[idx],  () => {    
+        describe('test ' + storages[idx],  () => {    
 
             it('should change storage', async () => {
                 await config.change_storage(storages[idx]);
@@ -172,6 +172,56 @@ describe('STORAGE',  () => {
                 });
 
             }
+
+            it('should redo an operation', async () => {
+
+                const error_flow = JSON.parse(JSON.stringify(flows.errorFlow));
+    
+                const storage = config.storage;
+    
+                const flow_manager= new flow(storage);
+    
+                let event_error = false;
+    
+                flow_manager.on('suspend', (flow_id)=>{ 
+                    dbg('opflow-error', flow_id);
+                    event_error = true; }
+                );
+    
+                const flow_id = await flow_manager.save_flow(error_flow);
+    
+                const operations = await flow_manager.get_storage_flow(flow_id);
+            
+                const error_operation = operations.find((el) => { return el.name === 'user-error';});
+    
+                expect(error_operation).to.not.be.an('undefined', 'error op undefined');
+    
+                const op_id = error_operation.id;
+    
+                await flow_manager.register_failure(error_operation, 'test error');
+
+                if('../storage/disk' === config.data.storage)
+                {
+                    await config.change_storage(undefined);
+                }
+    
+                const error_operation2 = await flow_manager.get_operation(op_id);
+    
+                expect(error_operation2).to.not.be.an('undefined', 'error op undefined 2');
+    
+                expect(error_operation2.completed).to.be.true;
+    
+                expect(event_error).to.be.true;
+    
+                await flow_manager.redo(error_operation.id);
+                
+                const error_operation3 = await flow_manager.get_operation(op_id);
+    
+                expect(error_operation3.completed).to.be.false;
+    
+    
+            });
+
         });
 
     }
@@ -200,6 +250,11 @@ describe('STORAGE',  () => {
         }
 
     });
+
+    //describe('ERROR HANDLING', () => {
+        
+        
+    //});
 
     
 
