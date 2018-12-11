@@ -1,4 +1,4 @@
-const dbg    = require('debug')('opflow:config-test');
+//const dbg    = require('debug')('opflow:config-test');
 
 const chai   = require('chai');
 
