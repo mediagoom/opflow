@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const os = require('os');
 const dbg    = require('debug')('opflow:processor');
+const assert       = require('assert');//.strict;
 
 const createError = require('../error');
 
@@ -94,12 +95,9 @@ module.exports = class Processor extends EventEmitter{
     async completed(tag)
     {
         const box = this.running[tag];
-        /* istanbul ignore if */ 
-        if(!box.completed)
-        {
-            throw new Error('Invalid Completed tag ' + tag);
-        }
-                    
+        
+        assert(box.completed,'Invalid Completed tag ' + tag);
+                            
         dbg('OPERATION COMPLETED', box.operation.tag, box.succeeded, '[', box.operation.name, ']', Object.keys(this.running));
                     
         await this.coordinator.processed(box.operation.tag
