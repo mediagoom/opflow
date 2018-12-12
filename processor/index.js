@@ -23,6 +23,7 @@ const config_defaults = {
     polling_interval_seconds : 30
     , active_operations : 2
     , processor_name : null 
+    , err_logger : console.error
 };
 
 function poll(processor)
@@ -150,7 +151,7 @@ module.exports = class Processor extends EventEmitter{
 
         }catch(err)
         {
-            console.error('PROCESSOR POLL ERROR', err.message, err.stack);
+            this.configuration.err_logger('PROCESSOR POLL ERROR', err.message, err.stack);
             throw err;
         }
 
@@ -186,7 +187,7 @@ module.exports = class Processor extends EventEmitter{
         }
         else
         {
-            throw 'invalid configuration polling_interval_seconds';
+            throw new Error('invalid configuration polling_interval_seconds');
         }
     }
 

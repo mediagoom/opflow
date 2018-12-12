@@ -13,6 +13,21 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('PROCESSOR TEST', 'Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
+const err_msg = 'fake coordinator';
+
+class FakeCoordinator
+{
+    constructor()
+    {
+
+    }
+
+    async get_work()
+    {
+        throw new Error(err_msg);
+    }
+}
+
 describe('PROCESSOR', () => {
 
     //console.log('PROCESSOR TEST', process.env.DEBUG);
@@ -187,6 +202,61 @@ describe('PROCESSOR', () => {
         proc.stop();
         
         
+    });
+
+    it('should use configured name', async ()=>{
+        
+        const config = {processor_name: 'custom_name', err_logger: (m) => {dbg(m);}};
+
+        const proc = new processor(new FakeCoordinator(), config);
+        let msg = '-';
+
+        try{
+            await proc.poll();
+        }catch(e)
+        {
+            msg = e.message;
+        }
+
+
+        expect(msg).to.be.eq(err_msg);
+
+    });
+
+    it('should validate pooling time',  () =>{ 
+        
+
+        const config = {polling_interval_seconds: 'invalid configuration polling_interval_seconds'};
+
+        const proc = new processor(new FakeCoordinator(), config);
+        let msg = '-';
+
+        try{
+            proc.start();
+        }catch(e)
+        {
+            msg = e.message;
+        }
+
+        expect(msg).to.be.eq(config.polling_interval_seconds);
+    });
+
+    it('should handle poll error',  async () =>{ 
+        
+        //let msg = '-';
+
+        const config = {polling_interval_seconds: 0.0001, err_logger: function(m){console.log(m);/*msg = m;*/}};
+
+        const proc = new processor(new FakeCoordinator(), config);
+        
+
+        proc.start();
+
+        test.Wait(3);
+
+        proc.stop();
+
+        //expect(msg).to.be.eq('PROCESSOR POLL ERROR');
     });
 
 });
