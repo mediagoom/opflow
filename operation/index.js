@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 
 /** 
  * flow_manager is the opflow Storage Manager
+ * All interaction with storage goes through the flow_manager
  */
 class flow_manager extends EventEmitter
 {
@@ -93,6 +94,11 @@ class flow_manager extends EventEmitter
     async reset_operation(operation)
     {
         return this.storage.reset_op(operation);
+    }
+
+    async redo(op_id)
+    {
+        return this.storage.redo(op_id);
     }
 
     async set_operation_asOf(operation, asOf)

@@ -5,6 +5,7 @@ const coordinator  = require('./coordinator');
 const processor    = require('./processor');
 const EventEmitter = require('events');
 const util         = require('./util');
+const assert       = require('assert');//.strict;
 
 function initialize_all(wire, create_processor)
 {
@@ -75,7 +76,12 @@ class Wire extends EventEmitter  {
     stop(){
 
         initialize_all(this);
-        this.processor.stop();
+        
+        if(null !== this.processor)
+        {
+            this.processor.stop();
+        }
+
         this.processor = null;
 
     }
@@ -141,6 +147,13 @@ class Wire extends EventEmitter  {
     {
         initialize_all(this);
         return this.flow_manager.is_flow_completed(flow_id);
+    }
+
+    async redo(operation_id)
+    {
+        assert(null != this.flow_manager);
+
+        return this.flow_manager.redo(operation_id);
     }
 }
 

@@ -1,5 +1,6 @@
-const base = require('./base');
-const dbg  = require('debug')('opflow:memory-storage');
+const base   = require('./base');
+const dbg    = require('debug')('opflow:memory-storage');
+const assert = require('assert');//.strict;
 
 const OPERATION_CHANGE = Object.freeze({
     START : 'START'
@@ -201,6 +202,14 @@ module.exports = class memorystorage extends base  {
         delete this.flows[flow_id];
     }
 
+    async flow_suspended(operation_id)
+    {
+        const flow_id = this.flow_id(operation_id);
+        dbg('flow suspended', this.flows[flow_id].flow.id);
+
+        this.emit(this.events.SUSPEND, this.flows[flow_id], operation_id);
+    }
+
     async flow_ended(operation_id)
     {
         const flow_id = this.flow_id(operation_id);
@@ -212,14 +221,14 @@ module.exports = class memorystorage extends base  {
         
     }
 
-    async operation_changed(operation_id, type)
+    async operation_changed(operation_id, type, succeeded)
     {
         const flow = this.flow_id(operation_id);
         await this.flow_changed(this.flows[flow], type, operation_id);
 
-        if(type === OPERATION_CHANGE.COMPLETE && arguments[2] === false)
+        if(type === OPERATION_CHANGE.COMPLETE && succeeded === false)
         {
-            this.emit(this.events.SUSPEND, flow, operation_id);
+            await this.flow_suspended(operation_id);
         }
     }
     
@@ -260,13 +269,12 @@ module.exports = class memorystorage extends base  {
     }
 
     async is_flow_completed(flow_id)
-    {
+    { 
+        assert(flow_id);
+
         const flow = this.flows[flow_id];
 
-        if(undefined === flow)
-        {
-            base.throw_storage_error('invalid flow name ' + flow_id);
-        }
+        assert(flow !== undefined, 'invalid flow id ' + flow_id);
 
         const op = flow.operations.find( el => {return !el.completed;});
 
@@ -399,10 +407,17 @@ module.exports = class memorystorage extends base  {
         op.succeeded = false;
         op.completed = false;
         op.executed  = false;
-        op.lease_time = undefined;
+        op.lease_time = null;
+        op.history = null;
         op.modified = new Date();
 
         return this.operation_changed(op.id, OPERATION_CHANGE.RESET);
+    }
+
+    async redo(op_id)
+    {
+        const operation = await this.get_operation(op_id);
+        return this.reset_op(operation);
     }
 
     async get_parent(operation)

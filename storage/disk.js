@@ -1,5 +1,5 @@
 const memory = require('../storage/memory');
-const dbg    = require('debug')('opflow:diskStorage');
+const dbg    = require('debug')('opflow:disk-test');
 const config = require('../config');
 const util   = require('util');
 const fs     = require('fs');
@@ -112,6 +112,59 @@ module.exports = class diskStorage extends memory  {
         return WriteFile(Path.join(this.path, source), JSON.stringify(flow.operations, null, 4));
     }
 
+    async flow_suspended(operation_id)
+    {
+        const flow_id = this.flow_id(operation_id);
+
+        const source = this.file_path(flow_id);
+
+        await super.flow_suspended(operation_id);
+
+        const p1 = move_file(
+            Path.join(this.path, source)
+            , Path.join(this.suspended_path, source)
+        );
+
+        await p1;
+
+        return;
+    }
+
+    async redo(op_id)
+    {
+        const flow_id = this.flow_id(op_id);
+        await this.get_operation(op_id);
+
+        await super.redo(op_id);
+
+
+        /*
+        if(undefined === this.flows[flow_id])
+        {
+            
+
+            await move_file(
+                Path.join(this.suspended_path, source)
+                , Path.join(this.path, source)
+            );
+
+            const flow = await this.load_flow_from_file(flow_id);
+            if(undefined != flow)
+            {
+                this.flows[flow_id] = flow; 
+            }
+            else
+            {
+                throw new Error('Cannot find flow ' + flow_id);
+            }
+        }*/
+        
+        const source = this.file_path(flow_id);
+        await Delete(Path.join(this.suspended_path, source));
+
+        
+    }
+
     async complete_flow(flow_id)
     {
         const source = this.file_path(flow_id);
@@ -139,13 +192,13 @@ module.exports = class diskStorage extends memory  {
         return super.is_flow_completed(flow_id);
     }
 
-    async operation_changed(operation_id, type)
+    async operation_changed(operation_id, type, succeeded)
     {
         const flow_id = this.flow_id(operation_id);
         //await this.flow_changed(this.flows[flow_id], type);
         if(! await this.is_flow_completed(flow_id) )
         {
-            return super.operation_changed(operation_id, type);
+            return super.operation_changed(operation_id, type, succeeded);
         }
     }
 
@@ -252,7 +305,8 @@ module.exports = class diskStorage extends memory  {
 
         directory_exist_or_create_sync(this.path);
         directory_exist_or_create_sync(this.complete_path);
-
+        directory_exist_or_create_sync(this.suspend_files);
+    
         const working = get_files_sync(this.path);
 
         for(let idx = 0; idx < working.length; idx++)

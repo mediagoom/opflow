@@ -1,10 +1,28 @@
 const defaults = require('./default.js');
 const Path = require('path');
 const dbg = require('debug')('opflow:configuration');
-let   _config  = require('./' + (process.env.NODE_ENV || 'development') + '.js');
+
+function node_env()
+{
+    let node_environment = (process.env.NODE_ENV || 'development');
+
+    if(node_environment === 'development' 
+    || node_environment === 'production' 
+    )
+        return node_environment;
+
+    return 'development';
+}
+
+function get_config()
+{
+    let   _config  = require('./' + node_env() + '.js');
+    _config = Object.assign({}, defaults, _config);
+
+    return _config;
+}
 
 
-_config = Object.assign({}, defaults, _config);
 
 class Config
 {
@@ -62,6 +80,9 @@ class Config
      */
     async change_storage(storagePath)
     {
+        if(undefined === storagePath) //reset the same storage
+            storagePath = this.data.storage; 
+
         dbg('change storage', storagePath);
         this.data.storage = storagePath;
         this._storage = null;
@@ -89,7 +110,9 @@ class Config
     }
 }
 
-const config = new Config(_config);
+const config = new Config(get_config());
 
 module.exports = config;
+
+module.exports.node_env = node_env;
 

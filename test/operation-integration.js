@@ -128,7 +128,6 @@ describe('TEST OPERATIONS', () => {
         const out_content = await read.process(config, propertyBag);
 
         expect(out_content).to.be.eq(content);
-        
     });
    
 });

@@ -34,13 +34,13 @@
             "request": "launch",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
-            "args": ["-d", "./test/**/*.js", "-g", "errorFlow", "--no-timeouts"],
+            "args": ["-d", "./test/**/*.js", "-g", "operation error", "--no-timeouts"],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": null,
             "console": "integratedTerminal"
             
             , "env": {
-                "NODE_ENV": "production"
+                "NODE_ENV": "development"
                 , "DEBUG" : "opflow:*"
             }
             

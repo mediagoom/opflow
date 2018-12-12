@@ -12,7 +12,12 @@ const expect = chai.expect;
 describe('WIRE', () => {
 
     after(() => {config.storage = null;});
-    
+
+    it('should handle missing start', () => {
+        opflow.stop();
+    });
+
+        
     it('should start, run and then stop', async () => {
          
         const test_flow = JSON.parse(JSON.stringify(flows.simpleEcho));
@@ -66,6 +71,12 @@ describe('WIRE', () => {
 
         expect(event_end).to.be.true;
         expect(event_error).to.be.eq(true, 'missing error event');
+
+        const op_error = await opflow.get_runtime_flow(err_id);
+
+        const error_operation = op_error.find((el) => { return el.name === 'user-error';});
+
+        await opflow.redo(error_operation.id);
 
     });
 });
