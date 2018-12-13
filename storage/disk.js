@@ -71,18 +71,25 @@ function get_files_sync(path)
     return result;
 }
 
-
-async function move_file(source_path, destination_path)
+async function safe_delete(path)
 {
     try{
-        await Delete(destination_path);
+        await Delete(path);
     }catch(err)
     {
         dbg('file not already exist %j', err);
     }
+    
+}
+
+async function move_file(source_path, destination_path)
+{
+    await safe_delete(destination_path);
     await CopyFile(source_path, destination_path);
     await Delete(source_path);
 }
+
+
 
 module.exports = class diskStorage extends memory  {
 
@@ -160,7 +167,8 @@ module.exports = class diskStorage extends memory  {
         }*/
         
         const source = this.file_path(flow_id);
-        await Delete(Path.join(this.suspended_path, source));
+        
+        return safe_delete(Path.join(this.suspended_path, source));
 
         
     }
