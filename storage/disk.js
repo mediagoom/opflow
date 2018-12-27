@@ -381,7 +381,7 @@ module.exports = class diskStorage extends memory  {
             const source = this.file_path(flow_id);
             try{
 
-                const stat = await Stat(Path.join(this.suspend_files, source));
+                const stat = await Stat(Path.join(this.suspended_path, source));
                 if(stat.isFile())
                 {
                     operations = await this.load_storage_flow_from_file(flow_id, this.suspend_files);

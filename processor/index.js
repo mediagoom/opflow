@@ -140,7 +140,11 @@ module.exports = class Processor extends EventEmitter{
                 if(null == op)
                     return pushed;
                 
-                dbg('RUNNING OPERATION ', op.tag, '[', op.name, ']', Object.keys(this.running));
+                dbg('RUNNING OPERATION ', op.tag, '[', op.name, ']'
+                    , this.configuration.active_operations
+                    , this.queue_size()
+                    , Object.keys(this.running));
+                    
                 this.running[op.tag] = new ProcessorBox(op, idx, this);
                 pushed = true;
 
