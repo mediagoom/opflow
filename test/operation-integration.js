@@ -109,7 +109,7 @@ describe('TEST OPERATIONS', () => {
         }
 
         expect(thrown).to.be.eq(true, 'code did not thrown');
-        expect(msg).to.match(/is not recognized as an internal or external command/);
+        expect(msg).to.match(/Command failed: i_do_not_exist/);
     });
 
     it('spawn throw', async () => {
