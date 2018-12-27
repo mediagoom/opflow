@@ -4,6 +4,7 @@ const config = require('../config');
 const util   = require('util');
 const fs     = require('fs');
 const Path   = require('path');
+const assert = require('assert');//.strict;
 
 const Stat = util.promisify(fs.stat);
 const Mkdir = util.promisify(fs.mkdir);
@@ -12,6 +13,20 @@ const ReadDir = util.promisify(fs.readdir);
 const Delete = util.promisify(fs.unlink);
 const ReadFile = util.promisify(fs.readFile);
 const CopyFile = util.promisify(fs.copyFile);
+
+async function safe_stat(path)
+{
+    try{
+        const res = await Stat(path);
+        return res;
+    }catch(err)
+    {
+       dbg('safe_stat %j', err);
+       return {
+            isFile : () => {return false;}
+       } ;
+    }
+}
 
 async function directory_exist_or_create(path) {
     //const stat = await Stat(path);
@@ -185,19 +200,28 @@ module.exports = class diskStorage extends memory  {
 
     async is_flow_completed(flow_id)
     {
+        if(undefined !== this.flows[flow_id])
+            return super.is_flow_completed(flow_id);
+
         const source = this.file_path(flow_id);
         try{
 
-            const stat = await Stat(Path.join(this.complete_path, source));
+            let stat = await safe_stat(Path.join(this.complete_path, source));
             if(stat.isFile())
                 return true;
+
+            stat = await safe_stat(Path.join(this.suspended_path, source));
+            assert(stat.isFile()); //is not in memory and is not completed
+                
+            return false;
           
         }catch(err)
         {
             dbg('is_flow_completed %j', err); 
         }
 
-        return super.is_flow_completed(flow_id);
+        
+        
     }
 
     async operation_changed(operation_id, type, succeeded)
@@ -363,7 +387,7 @@ module.exports = class diskStorage extends memory  {
             const source = this.file_path(flow_id);
             try{
 
-                const stat = await Stat(Path.join(this.complete_path, source));
+                const stat = await safe_stat(Path.join(this.complete_path, source));
                 if(stat.isFile())
                 {
                     operations = await this.load_storage_flow_from_file(flow_id, this.complete_path);
@@ -381,10 +405,10 @@ module.exports = class diskStorage extends memory  {
             const source = this.file_path(flow_id);
             try{
 
-                const stat = await Stat(Path.join(this.suspended_path, source));
+                const stat = await safe_stat(Path.join(this.suspended_path, source));
                 if(stat.isFile())
                 {
-                    operations = await this.load_storage_flow_from_file(flow_id, this.suspend_files);
+                    operations = await this.load_storage_flow_from_file(flow_id, this.suspended_path);
                 }
             
             }catch(err)
@@ -397,6 +421,7 @@ module.exports = class diskStorage extends memory  {
         return operations;
     }
 
+    
     async get_hierarchical_flow(flow_id)
     {
         const operations = await this.get_storage_flow(flow_id);
