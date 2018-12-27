@@ -1,4 +1,6 @@
 ﻿# Set the default behavior, in case people don't have core.autocrlf set.
+# Autodetect text files
 * text=auto
 
+# Force the following filetypes to have unix eols, so Windows does not break them
 *.* text eol=lf

@@ -87,6 +87,75 @@ describe('TEST OPERATIONS', () => {
         });
     }
 
+    it('exec throw', async () => {
+        
+        const propertyBag = {};
+            
+        const config = {
+            exec : 'i_do_not_exist'
+            , include_err : true
+        };
+
+        let thrown = false;
+        let msg = '';
+
+        try{
+            await execute.process(config, propertyBag);
+        }catch(err)
+        {
+            dbg('exec integration', err.message, err.stack);
+            msg = err.message;
+            thrown = true;
+        }
+
+        expect(thrown).to.be.eq(true, 'code did not thrown');
+        expect(msg).to.match(/is not recognized as an internal or external command/);
+    });
+
+    it('spawn throw', async () => {
+        
+        const propertyBag = {};
+            
+        const config = {
+            cmd: 'i_do_not_exist'
+            , args : []
+            , include_err : true
+        };
+        
+
+        let thrown = false;
+        let msg = '';
+
+        try{
+            await execute.process(config, propertyBag);
+        }catch(err)
+        {
+            dbg('exec integration', err.message, err.stack);
+            msg = err.message;
+            thrown = true;
+        }
+
+        expect(thrown).to.be.eq(true, 'code did not thrown');
+        expect(msg).to.match(/ENOENT/);
+    });
+
+    it('write and read file', async () => {
+       
+        const content = `this is a test line
+            in a test content`;
+
+        const path = '/tmp/read-write-file';
+
+        const propertyBag = {};
+            
+        const config = {path, content};
+        
+        await write.process(config, propertyBag);
+        const out_content = await read.process(config, propertyBag);
+
+        expect(out_content).to.be.eq(content);
+    });
+
     it('code throw', async () => {
         
         const propertyBag = {};
@@ -111,23 +180,6 @@ describe('TEST OPERATIONS', () => {
 
         expect(thrown).to.be.eq(true, 'code did not thrown');
         expect(msg).to.be.eq('this is an error');
-    });
-
-    it('write and read file', async () => {
-       
-        const content = `this is a test line
-            in a test content`;
-
-        const path = '/tmp/read-write-file';
-
-        const propertyBag = {};
-            
-        const config = {path, content};
-        
-        await write.process(config, propertyBag);
-        const out_content = await read.process(config, propertyBag);
-
-        expect(out_content).to.be.eq(content);
     });
    
 });

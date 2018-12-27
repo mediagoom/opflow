@@ -305,7 +305,7 @@ module.exports = class diskStorage extends memory  {
 
         directory_exist_or_create_sync(this.path);
         directory_exist_or_create_sync(this.complete_path);
-        directory_exist_or_create_sync(this.suspend_files);
+        directory_exist_or_create_sync(this.suspended_path);
     
         const working = get_files_sync(this.path);
 
