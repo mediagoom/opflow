@@ -171,9 +171,17 @@ describe('TEST OPERATIONS', () => {
         const config = {path, content};
         
         await write.process(config, propertyBag);
-        const out_content = await read.process(config, propertyBag);
+        let out_content = await read.process(config, propertyBag);
 
         expect(out_content).to.be.eq(content);
+
+        config.encoding = 'utf8';
+
+        out_content = await read.process(config, propertyBag);
+
+        expect(out_content).to.be.eq(content);
+
+
     });
 
     it('code throw', async () => {
