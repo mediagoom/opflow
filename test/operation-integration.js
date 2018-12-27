@@ -87,6 +87,26 @@ describe('TEST OPERATIONS', () => {
         });
     }
 
+    it('execute node cmd', async () => {
+
+        const propertyBag = {};
+        
+        const config = {
+            cmd : 'node'
+            , args : [ './test/simpleExec.js' ]
+            , include_err : false
+        };
+
+        const result = await execute.process(config, propertyBag);
+
+        dbg('execute %s %O', os.platform(), result , JSON.stringify(propertyBag, null, 4));
+
+        expect(propertyBag.execute.code).to.be.eq(0, 'process return code');
+        expect(propertyBag.execute.output.console[0]).to.be.eq('simple exec\n');
+        expect(propertyBag.execute.output.err[0]).to.be.eq('simple error\n');
+
+    });
+
     it('exec throw', async () => {
         
         const propertyBag = {};
