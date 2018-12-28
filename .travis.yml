@@ -13,10 +13,13 @@ branches:
   - dev-wia
 before_install:
 - python ./version.py 
-script:
+install:
 - npm install
-- npm install --only=dev
+- npm install --only=de
+- npm install coveralls codecov nyc
+script:
 - npm run cov-test
+- ./node_modules/.bin/nyc report --reporter=text-lcov > coverage.lcov && codecov
 after_script: 
 deploy:
 - provider: npm
