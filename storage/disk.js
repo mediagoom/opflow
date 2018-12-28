@@ -127,11 +127,14 @@ module.exports = class diskStorage extends memory  {
         return path.replace('.json', '');
     }
 
-    async disk_save_flow(flow)
+    async disk_save_flow(flow, target)
     {
+        if(undefined === target)
+            target = this.path;
+
         const source = this.file_path(flow.flow.id);
 
-        return WriteFile(Path.join(this.path, source), JSON.stringify(flow.operations, null, 4));
+        return WriteFile(Path.join(target, source), JSON.stringify(flow.operations, null, 4));
     }
 
     async flow_suspended(operation_id)
@@ -149,7 +152,8 @@ module.exports = class diskStorage extends memory  {
 
         dbg('suspend-flow', flow_id);
         //no more active
-        delete this.flows[flow_id];
+        //delete this.flows[flow_id];
+        await super.discard_flow(flow_id);
 
         await p1;
 
@@ -190,6 +194,14 @@ module.exports = class diskStorage extends memory  {
         );
     }
 
+    async is_flow_suspended(flow_id)
+    {
+        const source = this.file_path(flow_id);
+        const stat = await safe_stat(Path.join(this.suspended_path, source));
+
+        return stat.isFile();
+    }
+
     async is_flow_completed(flow_id)
     {
         if(undefined !== this.flows[flow_id])
@@ -216,17 +228,48 @@ module.exports = class diskStorage extends memory  {
         
     }
 
-    async operation_changed(operation_id, type, succeeded)
+    async operation_changed(operation_id, type, succeeded, operation)
     {
         dbg('operation-changed', operation_id, type, succeeded);
         const flow_id = this.flow_id(operation_id);
 
-        /*
+        
         if(undefined === this.flows[flow_id])
         {
             dbg('suspended-flow-changed', flow_id, operation_id);
+            console.warn('null-flow-changed', flow_id, operation_id, type, (operation)?operation.name:'---');
+
+            if(undefined !== operation)
+            {
+                const operations = await this.get_storage_flow(flow_id);
+
+                let found = false;
+
+                for(let idx = 0; idx < operations.length; idx++)
+                {
+                    if(operations[idx].id === operation.id)
+                    {
+                        operations[idx] = operation;
+                        found = true;
+                        break;
+                    }
+                }
+
+                assert(found, 'cannot find suspended operation');
+                assert(this.is_flow_suspended(flow_id), 'invalid suspended flow');
+
+                await this.disk_save_flow(
+                    {
+                        operations
+                        , flow : {id : flow_id} 
+                    }
+                    , this.suspended_path
+                );
+
+            }
+
             return;
-        }*/
+        }
         
         if(! await this.is_flow_completed(flow_id) )
         {

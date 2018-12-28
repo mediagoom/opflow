@@ -168,7 +168,7 @@ const basicCode = {
                             
                             , children:[
                                 { type: '../operation/user/code'
-                                    , name: 'echo code1'
+                                    , name: 'echo join code1'
                                     , config: {
                                         code: `3 + 7; 
                                      `

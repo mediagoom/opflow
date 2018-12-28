@@ -32,7 +32,9 @@ describe('TEST OPERATIONS', () => {
 
         });
 
-        it('execute exec', async () => {
+        it('execute exec', async function() {
+
+            this.timeout(15000);
 
             const propertyBag = {};
             

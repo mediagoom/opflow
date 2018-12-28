@@ -224,8 +224,10 @@ module.exports = class memorystorage extends base  {
         
     }
 
-    async operation_changed(operation_id, type, succeeded)
+    async operation_changed(operation_id, type, succeeded, operation)
     {
+        assert(undefined === operation || operation_id === operation.id);
+
         const flow = this.flow_id(operation_id);
         await this.flow_changed(this.flows[flow], type, operation_id);
 
@@ -365,7 +367,7 @@ module.exports = class memorystorage extends base  {
 
         operation.lease_time = null;
 
-        await this.operation_changed(operation.id, OPERATION_CHANGE.COMPLETE, op.succeeded);
+        await this.operation_changed(operation.id, OPERATION_CHANGE.COMPLETE, op.succeeded, op);
 
         if('END' === operation.type && op.succeeded)
         {
@@ -404,7 +406,7 @@ module.exports = class memorystorage extends base  {
             }
         );
 
-        return this.operation_changed(operation.id, OPERATION_CHANGE.HISTORY);
+        return this.operation_changed(operation.id, OPERATION_CHANGE.HISTORY, false, operation);
         
     }
 
@@ -417,7 +419,7 @@ module.exports = class memorystorage extends base  {
         op.history = null;
         op.modified = new Date();
 
-        return this.operation_changed(op.id, OPERATION_CHANGE.RESET);
+        return this.operation_changed(op.id, OPERATION_CHANGE.RESET, false, op);
     }
 
     async redo(op_id)

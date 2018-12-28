@@ -68,7 +68,7 @@ function newid()
     const create = Date.now();
     const seconds = (anchor - create) / 1000;
     const n = pad(seconds.toFixed(0), 12);
-    const j = pad(++increment, 4);
+    const j = pad(++increment % 1000, 4);
 
     return n.toString() + '-' + j;
 }
