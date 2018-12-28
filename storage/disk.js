@@ -1,5 +1,5 @@
 const memory = require('../storage/memory');
-const dbg    = require('debug')('opflow:disk-test');
+const dbg    = require('debug')('opflow:disk');
 const config = require('../config');
 const util   = require('util');
 const fs     = require('fs');
@@ -21,10 +21,10 @@ async function safe_stat(path)
         return res;
     }catch(err)
     {
-       dbg('safe_stat %j', err);
-       return {
+        dbg('safe_stat %j', err);
+        return {
             isFile : () => {return false;}
-       } ;
+        } ;
     }
 }
 
@@ -92,7 +92,7 @@ async function safe_delete(path)
         await Delete(path);
     }catch(err)
     {
-        dbg('file not already exist %j', err);
+        dbg('safe-delete-file-not-already-exist %j', err);
     }
     
 }
@@ -147,6 +147,10 @@ module.exports = class diskStorage extends memory  {
             , Path.join(this.suspended_path, source)
         );
 
+        dbg('suspend-flow', flow_id);
+        //no more active
+        delete this.flows[flow_id];
+
         await p1;
 
         return;
@@ -155,37 +159,25 @@ module.exports = class diskStorage extends memory  {
     async redo(op_id)
     {
         const flow_id = this.flow_id(op_id);
-        await this.get_operation(op_id);
-
-        await super.redo(op_id);
-
-
-        /*
+        const source = this.file_path(flow_id);
+               
         if(undefined === this.flows[flow_id])
         {
-            
-
             await move_file(
                 Path.join(this.suspended_path, source)
                 , Path.join(this.path, source)
             );
 
             const flow = await this.load_flow_from_file(flow_id);
-            if(undefined != flow)
-            {
-                this.flows[flow_id] = flow; 
-            }
-            else
-            {
-                throw new Error('Cannot find flow ' + flow_id);
-            }
-        }*/
-        
-        const source = this.file_path(flow_id);
-        
-        return safe_delete(Path.join(this.suspended_path, source));
+            assert(undefined !== flow);
+            this.flows[flow_id] = flow; 
 
+        }
         
+        await super.redo(op_id);
+        
+        //return safe_delete(Path.join(this.suspended_path, source));
+
     }
 
     async complete_flow(flow_id)
@@ -226,8 +218,16 @@ module.exports = class diskStorage extends memory  {
 
     async operation_changed(operation_id, type, succeeded)
     {
+        dbg('operation-changed', operation_id, type, succeeded);
         const flow_id = this.flow_id(operation_id);
-        //await this.flow_changed(this.flows[flow_id], type);
+
+        /*
+        if(undefined === this.flows[flow_id])
+        {
+            dbg('suspended-flow-changed', flow_id, operation_id);
+            return;
+        }*/
+        
         if(! await this.is_flow_completed(flow_id) )
         {
             return super.operation_changed(operation_id, type, succeeded);
@@ -236,7 +236,7 @@ module.exports = class diskStorage extends memory  {
 
     async flow_changed(flow, type)
     {
-        dbg('flow changed', flow.flow.id, type);
+        dbg('flow-changed', flow.flow.id, type);
 
         if('HISTORY' === type || 'ASoF' === type)
             return;
@@ -263,7 +263,9 @@ module.exports = class diskStorage extends memory  {
         const working = await get_files(this.path);
         
         for(let idx = 0; idx < working.length; idx++)
-        {            
+        {   
+            dbg('file-suspending', working.length, idx, working[idx]);
+
             await move_file(
                 Path.join(this.path, working[idx])
                 , Path.join(this.suspended_path, working[idx])
@@ -333,6 +335,8 @@ module.exports = class diskStorage extends memory  {
 
     init()
     {
+        dbg('disk-init');
+
         super.init();
 
         directory_exist_or_create_sync(this.path);
@@ -355,6 +359,9 @@ module.exports = class diskStorage extends memory  {
     async reset(hard)
     {
         await super.reset();
+        this.flows = {};
+
+        assert(0 === Object.keys(this.flows).length);
 
         const cleanup = (hard)?true:false;
 
@@ -369,6 +376,8 @@ module.exports = class diskStorage extends memory  {
         
         for(let idx = 0; idx < working.length; idx++)
         {
+            dbg('load-file', idx, working.length, working[idx]);
+
             const flow_id = this.flow_id_from_path(working[idx]);
 
             const flow = await this.load_flow_from_file(flow_id);
@@ -419,6 +428,22 @@ module.exports = class diskStorage extends memory  {
         }
 
         return operations;
+    }
+
+    async get_operation(operation_id)
+    {
+        let operations = await super.get_operation(operation_id);
+
+        if(undefined !== operations)
+            return operations;
+
+        const flow_id = this.flow_id(operation_id);
+
+        operations = await this.get_storage_flow(flow_id);
+
+        const operation = operations.find((el)=> {return el.id === operation_id;});
+
+        return operation;
     }
 
     

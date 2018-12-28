@@ -25,6 +25,12 @@ describe('STORAGE',  () => {
 
             it('should change storage', async () => {
                 await config.change_storage(storages[idx]);
+                dbg('storage reset');
+                await config.storage.reset(true);
+
+                const flows = await config.storage.get_active_flows(10, {});
+                dbg('active flows', flows);
+                expect(flows.length).to.be.eq(0, 'active flows');
             });
 
             it('should support save flow', async () => {
@@ -124,7 +130,8 @@ describe('STORAGE',  () => {
                 while(null != op)
                 {
                     dbg('reset asOf', op.id);
-                    await flow_manager.set_operation_asOf(op);
+                    if(!op.completed)
+                        await flow_manager.set_operation_asOf(op);
 
                     operations = await flow_manager.load_operations(10);
 

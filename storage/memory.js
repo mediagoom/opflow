@@ -185,11 +185,14 @@ module.exports = class memorystorage extends base  {
         this.flows = {};
     }
 
-    init(){this.flows = {};}
+    init(){
+        this.flows = {};
+    }
    
     async reset()
     {
         this.init();
+        
     }
 
     async flow_changed(flow, type, operation_id)
@@ -331,6 +334,9 @@ module.exports = class memorystorage extends base  {
         }
 
         const flow_id = this.flow_id(operation_id);
+
+        if(undefined === this.flows[flow_id])
+            return undefined;
 
         const operations = this.flows[flow_id].operations;
 
