@@ -16,7 +16,7 @@ before_install:
 - npm i -g npm@5.6.0
 install:
 - npm install
-- npm install --only=de
+- npm install --only=dev
 - npm install coveralls codecov nyc
 script:
 - npm run cov-test
