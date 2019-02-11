@@ -66,6 +66,7 @@ describe('COORDINATOR', () => {
     });
 
     it('processed should throw ', async () =>{
+       
         
         let thrown = false;
         let msg = '';

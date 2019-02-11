@@ -125,6 +125,24 @@ describe('UNIT-TEST TESTING', () => {
 
 ```
 
+In case your unit test should fail you can retrieve the offending operations like this:
+```javascript
+try{
+........
+const operations = await unitTest(flows[key]);
+........  
+}catch(err)
+{
+    if(undefined !== err.runtime)
+    {
+        const failed = err.runtime.find ( (el) => { return (!el.completed && (el.history.length > 0));});
+        dbg('failed: %O', failed);
+        throw err;
+    }
+}
+```
+
+
 ### Integration Testing
 
 For integration testing just switch the type of the above operation from *code* to *read_file*.

@@ -31,12 +31,13 @@ module.exports = async function(flow, timeout_ms)
         if( timeout_ms < (now.getTime() - start.getTime()))
         {
             let props = {};
-            let msg = 'timeout Error \n ';
+            let msg = 'cannot compleate flow \n ';
             try{
                 const hierarchy = await opflow.get_flow(flow_id); 
                 props.flow = hierarchy;
+                props.runtime = await opflow.get_runtime_flow(flow_id); 
 
-                msg += JSON.stringify(hierarchy, null, 4);
+                //msg += JSON.stringify(hierarchy, null, 4);
                 
             }
             catch(err)
