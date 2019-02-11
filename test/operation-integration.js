@@ -2,6 +2,8 @@ const chai   = require('chai');
 const os     = require('os');
 const dbg    = require('debug')('opflow:operation-integration-test');
 
+const dbg_console = dbg.extend('console');
+
 const expect = chai.expect;
 
 
@@ -26,7 +28,9 @@ describe('TEST OPERATIONS', () => {
 
             const result = await execute.process(config, propertyBag);
 
-            dbg('execute %s %s %O', os.platform(), result, propertyBag );
+            dbg('execute %s %s %O', os.platform(), result );
+            dbg_console(propertyBag.execute.output);
+            
 
             expect(propertyBag.execute.code).to.be.eq(0, 'process return code');
 
@@ -45,7 +49,10 @@ describe('TEST OPERATIONS', () => {
 
             const result = await execute.process(config, propertyBag);
 
-            dbg('execute %s %s %O', os.platform(), result, propertyBag );
+            dbg('execute %s %s %O', os.platform(), result );
+            
+            
+
 
             expect(propertyBag.exec.stdout).not.be.null;
 
@@ -66,7 +73,9 @@ describe('TEST OPERATIONS', () => {
 
             const result = await execute.process(config, propertyBag);
 
-            dbg('execute %s %O', os.platform(), result );
+            dbg('execute %s %O', os.platform(), result , propertyBag);
+
+            dbg_console(propertyBag.execute.output);
 
             expect(propertyBag.execute.code).to.be.eq(0, 'process return code');
 
