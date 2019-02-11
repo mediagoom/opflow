@@ -3,7 +3,7 @@ const cp       = require('child_process');
 const path     = require('path');
 const dbg      = require('debug')('opflow:execute');
 //const verbose  = require('debug')('opflow:execute-verbose');
-const os       = require('os');
+//const os       = require('os');
 
 async function Exec(exec, options)
 {
@@ -129,10 +129,10 @@ module.exports = {
                 throw new Error('Invalid code found ' + result.code);
             }
            
-            let ret = result.output.console.join(os.EOL);
+            let ret = result.output.console.join('');//os.EOL);
 
             if(true === config.include_err)
-                ret += result.output.err.join(os.EOL); 
+                ret += result.output.err.join(''); 
 
             return ret;
             

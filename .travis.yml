@@ -4,8 +4,8 @@ env:
     - NODE_ENV: development
     - NODE_ENV: production
 node_js:
+- 11
 - 10
-- 9
 - 8
 cache: npm
 branches:
@@ -31,4 +31,4 @@ deploy:
   on:
     tags: true
     repo: mediagoom/opflow
-    node: 8
+    node: 10
