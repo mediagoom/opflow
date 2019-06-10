@@ -33,7 +33,7 @@ test_script:
   - ./node_modules/.bin/nyc --lines 95 npm test -- --reporter mocha-appveyor-reporter
  
 after_test:
-  - sh: echo "${COVERALLS_REPO_TOKEN:0:5}" 
+  - sh: echo "->${COVERALLS_REPO_TOKEN:0:5}<-" 
   - sh: if [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls --verbose; fi
 
 
