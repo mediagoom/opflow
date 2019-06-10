@@ -32,7 +32,7 @@ test_script:
   - npm run eslint
   - ./node_modules/.bin/nyc --lines 95 npm test -- --reporter mocha-appveyor-reporter
  
-after_deploy:
+after_test:
   - sh: if [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls --verbose; fi
 
 
