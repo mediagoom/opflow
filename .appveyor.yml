@@ -36,7 +36,7 @@ test_script:
 after_test:
   - sh: echo ${COVERALLS_SERVICE_NAME}
   - sh: echo "->${COVERALLS_REPO_TOKEN:0:5}<-" 
-  - sh: if [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls --verbose; fi
+  - sh: if [[ -z "${COVERALLS_REPO_TOKEN}" ]] && [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls --verbose; fi
 
 
 cache:
