@@ -3,12 +3,13 @@
   - Ubuntu
 
 environment:
+  global:
     COVERALLS_SERVICE_NAME: appveyor
     COVERALLS_REPO_TOKEN:
-        secure: ZYdATrcqk4WYd2UPNvdhUdDNKIvFdodts9+F2gnAhVomCbp4G5pWCGQZSVw/Kutc
-    matrix:
-    - NODE_ENV: development
-    - NODE_ENV: production
+      secure: ZYdATrcqk4WYd2UPNvdhUdDNKIvFdodts9+F2gnAhVomCbp4G5pWCGQZSVw/Kutc
+  matrix:
+  - NODE_ENV: development
+  - NODE_ENV: production
 
 stack: node 8
 
@@ -31,7 +32,11 @@ build: off
 test_script:
   - npm run eslint
   - ./node_modules/.bin/nyc --lines 95 npm test -- --reporter mocha-appveyor-reporter
-  - sh: if [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls; fi
+ 
+after_test:
+  - sh: echo ${COVERALLS_SERVICE_NAME}
+  - sh: echo "->${COVERALLS_REPO_TOKEN:0:5}<-" 
+  - sh: if [ $COVERALLS_REPO_TOKEN  ] && [ $NODE_ENV = "production" ] ; then ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls --verbose; fi
 
 
 cache:
